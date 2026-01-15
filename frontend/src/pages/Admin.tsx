@@ -12,7 +12,6 @@ import {
     Trash2,
     Plus,
     Shield,
-    X,
     Save,
 } from 'lucide-react';
 import type { RootState } from '@/state/store';
