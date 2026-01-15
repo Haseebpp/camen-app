@@ -16,6 +16,7 @@ import expenseRoutes from './routes/expense.routes.js';
 import eventRoutes from './routes/event.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
 import reportRoutes from './routes/reports.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.use('/api/expenses', expenseRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {

@@ -24,6 +24,16 @@ export const protect = asyncHandler(async (req, res, next) => {
     }
 });
 
+// Admin middleware - require admin privileges
+export const admin = (req, res, next) => {
+    if (req.user && req.user.isAdmin) {
+        next();
+    } else {
+        res.status(403);
+        throw new Error('Not authorized as admin');
+    }
+};
+
 // Generate JWT token and set as HTTP-only cookie
 export const generateToken = (res, userId) => {
     const token = jwt.sign({ userId }, process.env.JWT_SECRET, {

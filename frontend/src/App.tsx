@@ -22,6 +22,7 @@ import Expenses from './pages/Expenses';
 import Events from './pages/Events';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import Admin from './pages/Admin';
 
 const App: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -63,6 +64,7 @@ const App: React.FC = () => {
                 <Route path="/events" element={<Events />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/admin" element={<Admin />} />
             </Route>
 
             {/* Fallback */}

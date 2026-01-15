@@ -87,36 +87,36 @@ const seedDatabase = async () => {
         await mongoose.connect(process.env.MONGO_URI);
         console.log('MongoDB Connected...');
 
-        // Check if there's at least one user to associate products with
-        let user = await User.findOne();
+        // Get all users from database
+        let users = await User.find();
 
-        if (!user) {
+        if (users.length === 0) {
             // Create a default user if none exists
             console.log('No user found. Creating default seeder user...');
-            user = await User.create({
+            const newUser = await User.create({
                 name: 'Seeder Admin',
                 email: 'admin@salestrack.com',
                 password: 'admin123',
+                isAdmin: true,
             });
-            console.log(`Default user created: ${user.email}`);
+            users = [newUser];
+            console.log(`Default user created: ${newUser.email}`);
         }
 
-        // Clear existing products for this user
-        const deletedCount = await Product.deleteMany({ user: user._id });
-        console.log(`Cleared ${deletedCount.deletedCount} existing products for user`);
+        // Clear ALL existing products
+        const deletedCount = await Product.deleteMany({});
+        console.log(`Cleared ${deletedCount.deletedCount} existing products`);
 
-        // Create products with user reference
-        const productsWithUser = productsData.map((product) => ({
-            ...product,
-            user: user._id,
-        }));
+        // Create products for each user
+        for (const user of users) {
+            const productsWithUser = productsData.map((product) => ({
+                ...product,
+                user: user._id,
+            }));
 
-        const createdProducts = await Product.insertMany(productsWithUser);
-        console.log(`✅ Successfully seeded ${createdProducts.length} products:`);
-
-        createdProducts.forEach((product) => {
-            console.log(`   - ${product.itemCode}: ${product.name} (Stock: ${product.stockQuantity})`);
-        });
+            const createdProducts = await Product.insertMany(productsWithUser);
+            console.log(`✅ Seeded ${createdProducts.length} products for user: ${user.email}`);
+        }
 
         console.log('\n🎉 Database seeding completed successfully!');
         process.exit(0);
@@ -142,9 +142,35 @@ const destroyData = async () => {
     }
 };
 
+// Make a specific user admin by email
+const makeAdmin = async (email) => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI);
+        console.log('MongoDB Connected...');
+
+        const user = await User.findOne({ email: email.toLowerCase() });
+
+        if (!user) {
+            console.error(`❌ User with email "${email}" not found`);
+            process.exit(1);
+        }
+
+        user.isAdmin = true;
+        await user.save();
+
+        console.log(`✅ User "${user.name}" (${user.email}) is now an admin!`);
+        process.exit(0);
+    } catch (error) {
+        console.error(`❌ Error making user admin: ${error.message}`);
+        process.exit(1);
+    }
+};
+
 // Run based on command line argument
 if (process.argv[2] === '-d') {
     destroyData();
+} else if (process.argv[2] === '-a' && process.argv[3]) {
+    makeAdmin(process.argv[3]);
 } else {
     seedDatabase();
 }

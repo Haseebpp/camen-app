@@ -16,10 +16,15 @@ export const registerUser = asyncHandler(async (req, res) => {
         throw new Error('User already exists');
     }
 
+    // First user becomes admin
+    const userCount = await User.countDocuments();
+    const isFirstUser = userCount === 0;
+
     const user = await User.create({
         name,
         email,
         password,
+        isAdmin: isFirstUser,
     });
 
     if (user) {
@@ -36,6 +41,7 @@ export const registerUser = asyncHandler(async (req, res) => {
             _id: user._id,
             name: user.name,
             email: user.email,
+            isAdmin: user.isAdmin,
         });
     } else {
         res.status(400);
@@ -58,6 +64,7 @@ export const loginUser = asyncHandler(async (req, res) => {
             _id: user._id,
             name: user.name,
             email: user.email,
+            isAdmin: user.isAdmin,
         });
     } else {
         res.status(401);
@@ -87,6 +94,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
             _id: user._id,
             name: user.name,
             email: user.email,
+            isAdmin: user.isAdmin,
         });
     } else {
         res.status(404);
@@ -114,6 +122,7 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
             _id: updatedUser._id,
             name: updatedUser.name,
             email: updatedUser.email,
+            isAdmin: updatedUser.isAdmin,
         });
     } else {
         res.status(404);

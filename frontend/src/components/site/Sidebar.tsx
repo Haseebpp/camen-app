@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
+import { useSelector, useDispatch } from 'react-redux';
 import {
     LayoutDashboard,
     Package,
@@ -8,7 +9,11 @@ import {
     Settings as SettingsIcon,
     Receipt,
     CalendarDays,
+    Shield,
+    LogOut,
 } from 'lucide-react';
+import type { RootState, AppDispatch } from '@/state/store';
+import { logout } from '@/state/slices/authSlice';
 import { LOGO_URL } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
@@ -16,20 +21,27 @@ interface SidebarLinkProps {
     to: string;
     icon: React.ReactNode;
     label: string;
+    variant?: 'default' | 'admin';
 }
 
-const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, label }) => {
+const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, label, variant = 'default' }) => {
     const location = useLocation();
     const isActive = location.pathname === to;
+
+    const activeClass = variant === 'admin'
+        ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg shadow-red-200'
+        : 'bg-indigo-600 text-white shadow-lg shadow-indigo-200';
+
+    const hoverClass = variant === 'admin'
+        ? 'text-slate-500 hover:bg-red-50 hover:text-red-600'
+        : 'text-slate-500 hover:bg-indigo-50 hover:text-indigo-600';
 
     return (
         <Link
             to={to}
             className={cn(
                 'flex items-center gap-3 px-4 py-3 rounded-xl transition-all',
-                isActive
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                    : 'text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
+                isActive ? activeClass : hoverClass
             )}
         >
             {icon}
@@ -44,6 +56,15 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+    const { user } = useSelector((state: RootState) => state.auth);
+    const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await dispatch(logout());
+        navigate('/login');
+    };
+
     return (
         <>
             {/* Mobile Overlay */}
@@ -80,10 +101,34 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         <SidebarLink to="/expenses" icon={<Receipt size={20} />} label="Expenses" />
                         <SidebarLink to="/reports" icon={<BarChart3 size={20} />} label="Reports" />
                         <SidebarLink to="/settings" icon={<SettingsIcon size={20} />} label="Settings" />
+
+                        {/* Admin Link - only visible to admins */}
+                        {user?.isAdmin && (
+                            <>
+                                <div className="my-4 border-t border-slate-100" />
+                                <SidebarLink
+                                    to="/admin"
+                                    icon={<Shield size={20} />}
+                                    label="Admin Panel"
+                                    variant="admin"
+                                />
+                            </>
+                        )}
                     </nav>
 
+                    {/* Logout Button */}
+                    <div className="pt-4">
+                        <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all"
+                        >
+                            <LogOut size={20} />
+                            <span className="font-medium">Logout</span>
+                        </button>
+                    </div>
+
                     {/* Sync Status */}
-                    <div className="pt-6 border-t border-slate-100">
+                    <div className="pt-4 border-t border-slate-100">
                         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl">
                             <p className="text-xs font-semibold text-indigo-800 uppercase mb-1">
                                 Multi-Device Sync
