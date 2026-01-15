@@ -11,7 +11,13 @@ const axiosInstance = axios.create({
 
 // Response interceptor for handling errors
 axiosInstance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Prevent HTML responses (e.g., from SPA fallback 404s) being treated as successful API data
+        if (response.headers['content-type']?.includes('text/html')) {
+            return Promise.reject(new Error('Received HTML instead of JSON. API might be down or URL is incorrect.'));
+        }
+        return response;
+    },
     (error) => {
         const message = error.response?.data?.message || error.message || 'An error occurred';
         return Promise.reject(new Error(message));
