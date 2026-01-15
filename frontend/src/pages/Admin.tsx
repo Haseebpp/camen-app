@@ -12,7 +12,6 @@ import {
     Trash2,
     Plus,
     Shield,
-    X,
     Save,
 } from 'lucide-react';
 import type { RootState } from '@/state/store';
@@ -48,6 +47,8 @@ const Admin: React.FC = () => {
     const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<AdminEvent | null>(null);
+    const [editingSale, setEditingSale] = useState<AdminSale | null>(null);
+    const [editingExpense, setEditingExpense] = useState<AdminExpense | null>(null);
     const [eventFormData, setEventFormData] = useState({
         name: '',
         date: new Date().toISOString().split('T')[0],
@@ -162,6 +163,58 @@ const Admin: React.FC = () => {
         }
     };
 
+    // Sale handlers
+    const handleUpdateSale = async () => {
+        if (!editingSale) return;
+        try {
+            const updated = await adminService.updateSale(editingSale._id, {
+                soldBy: editingSale.soldBy,
+                type: editingSale.type,
+                totalAmount: editingSale.totalAmount,
+            });
+            setSales(sales.map((s) => (s._id === updated._id ? updated : s)));
+            setEditingSale(null);
+        } catch (err) {
+            alert((err as Error).message);
+        }
+    };
+
+    const handleDeleteSale = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this sale?')) return;
+        try {
+            await adminService.deleteSale(id);
+            setSales(sales.filter((s) => s._id !== id));
+        } catch (err) {
+            alert((err as Error).message);
+        }
+    };
+
+    // Expense handlers
+    const handleUpdateExpense = async () => {
+        if (!editingExpense) return;
+        try {
+            const updated = await adminService.updateExpense(editingExpense._id, {
+                description: editingExpense.description,
+                category: editingExpense.category,
+                amount: editingExpense.amount,
+            });
+            setExpenses(expenses.map((e) => (e._id === updated._id ? updated : e)));
+            setEditingExpense(null);
+        } catch (err) {
+            alert((err as Error).message);
+        }
+    };
+
+    const handleDeleteExpense = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this expense?')) return;
+        try {
+            await adminService.deleteExpense(id);
+            setExpenses(expenses.filter((e) => e._id !== id));
+        } catch (err) {
+            alert((err as Error).message);
+        }
+    };
+
     const tabs = [
         { id: 'overview', label: 'Overview', icon: BarChart3 },
         { id: 'users', label: 'Users', icon: Users },
@@ -192,8 +245,8 @@ const Admin: React.FC = () => {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as TabType)}
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id
-                                ? 'bg-indigo-600 text-white shadow-sm'
-                                : 'text-slate-600 hover:bg-slate-100'
+                            ? 'bg-indigo-600 text-white shadow-sm'
+                            : 'text-slate-600 hover:bg-slate-100'
                             }`}
                     >
                         <tab.icon size={18} />
@@ -346,6 +399,7 @@ const Admin: React.FC = () => {
                                         <TableHead>Amount</TableHead>
                                         <TableHead>Sold By</TableHead>
                                         <TableHead>Event</TableHead>
+                                        <TableHead>Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -356,8 +410,18 @@ const Admin: React.FC = () => {
                                                 <Badge variant={s.type === 'COMBO' ? 'default' : 'secondary'}>{s.type}</Badge>
                                             </TableCell>
                                             <TableCell className="font-medium text-green-600">SAR {s.totalAmount}</TableCell>
-                                            <TableCell className="text-sm text-slate-500">{s.user?.name || s.soldBy}</TableCell>
+                                            <TableCell className="text-sm text-slate-500">{s.soldBy}</TableCell>
                                             <TableCell>{s.event?.name || '-'}</TableCell>
+                                            <TableCell>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => setEditingSale(s)} className="text-slate-400 hover:text-indigo-600">
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleDeleteSale(s._id)} className="text-slate-400 hover:text-red-600">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -378,6 +442,7 @@ const Admin: React.FC = () => {
                                         <TableHead>Amount</TableHead>
                                         <TableHead>User</TableHead>
                                         <TableHead>Event</TableHead>
+                                        <TableHead>Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -389,6 +454,16 @@ const Admin: React.FC = () => {
                                             <TableCell className="font-medium text-red-600">-SAR {e.amount}</TableCell>
                                             <TableCell className="text-sm text-slate-500">{e.user?.name || 'N/A'}</TableCell>
                                             <TableCell>{e.event?.name || '-'}</TableCell>
+                                            <TableCell>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => setEditingExpense(e)} className="text-slate-400 hover:text-indigo-600">
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleDeleteExpense(e._id)} className="text-slate-400 hover:text-red-600">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -558,8 +633,88 @@ const Admin: React.FC = () => {
                     </div>
                 </Modal>
             )}
+
+            {/* Edit Sale Modal */}
+            {editingSale && (
+                <Modal isOpen={true} onClose={() => setEditingSale(null)} title="Edit Sale">
+                    <div className="space-y-4">
+                        <Input
+                            label="Sold By"
+                            value={editingSale.soldBy}
+                            onChange={(e) => setEditingSale({ ...editingSale, soldBy: e.target.value })}
+                        />
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                            <select
+                                value={editingSale.type}
+                                onChange={(e) => setEditingSale({ ...editingSale, type: e.target.value })}
+                                className="w-full p-2 border rounded-lg"
+                            >
+                                <option value="INDIVIDUAL">Individual</option>
+                                <option value="COMBO">Combo</option>
+                            </select>
+                        </div>
+                        <Input
+                            label="Total Amount (SAR)"
+                            type="number"
+                            value={editingSale.totalAmount.toString()}
+                            onChange={(e) => setEditingSale({ ...editingSale, totalAmount: parseFloat(e.target.value) || 0 })}
+                        />
+                        <div className="bg-slate-50 p-3 rounded-lg text-sm text-slate-600">
+                            <p><strong>Event:</strong> {editingSale.event?.name || 'No event'}</p>
+                            <p><strong>Date:</strong> {new Date(editingSale.timestamp).toLocaleString()}</p>
+                        </div>
+                        <div className="flex justify-end gap-3 mt-6">
+                            <Button variant="ghost" onClick={() => setEditingSale(null)}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleUpdateSale}>
+                                <Save size={16} /> Save Changes
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
+
+            {/* Edit Expense Modal */}
+            {editingExpense && (
+                <Modal isOpen={true} onClose={() => setEditingExpense(null)} title="Edit Expense">
+                    <div className="space-y-4">
+                        <Input
+                            label="Description"
+                            value={editingExpense.description}
+                            onChange={(e) => setEditingExpense({ ...editingExpense, description: e.target.value })}
+                        />
+                        <Input
+                            label="Category"
+                            value={editingExpense.category}
+                            onChange={(e) => setEditingExpense({ ...editingExpense, category: e.target.value })}
+                        />
+                        <Input
+                            label="Amount (SAR)"
+                            type="number"
+                            value={editingExpense.amount.toString()}
+                            onChange={(e) => setEditingExpense({ ...editingExpense, amount: parseFloat(e.target.value) || 0 })}
+                        />
+                        <div className="bg-slate-50 p-3 rounded-lg text-sm text-slate-600">
+                            <p><strong>Event:</strong> {editingExpense.event?.name || 'No event'}</p>
+                            <p><strong>Date:</strong> {new Date(editingExpense.date).toLocaleDateString()}</p>
+                            <p><strong>User:</strong> {editingExpense.user?.name || 'N/A'}</p>
+                        </div>
+                        <div className="flex justify-end gap-3 mt-6">
+                            <Button variant="ghost" onClick={() => setEditingExpense(null)}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleUpdateExpense}>
+                                <Save size={16} /> Save Changes
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
         </div>
     );
 };
 
 export default Admin;
+

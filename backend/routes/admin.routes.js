@@ -6,7 +6,11 @@ import {
     deleteUser,
     getAllProducts,
     getAllSales,
+    updateSale,
+    deleteSale,
     getAllExpenses,
+    updateExpense,
+    deleteExpense,
     getAllEvents,
     createGlobalEvent,
     updateEvent,
@@ -37,10 +41,20 @@ router.route('/users/:id')
 router.get('/products', getAllProducts);
 
 // Sales
-router.get('/sales', getAllSales);
+router.route('/sales')
+    .get(getAllSales);
+
+router.route('/sales/:id')
+    .put(updateSale)
+    .delete(deleteSale);
 
 // Expenses
-router.get('/expenses', getAllExpenses);
+router.route('/expenses')
+    .get(getAllExpenses);
+
+router.route('/expenses/:id')
+    .put(updateExpense)
+    .delete(deleteExpense);
 
 // Events
 router.route('/events')
@@ -52,3 +66,4 @@ router.route('/events/:id')
     .delete(deleteEvent);
 
 export default router;
+

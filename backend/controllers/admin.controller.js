@@ -209,3 +209,90 @@ export const getAdminStats = asyncHandler(async (req, res) => {
         recentUsers,
     });
 });
+
+// @desc    Update sale (admin only)
+// @route   PUT /api/admin/sales/:id
+// @access  Private/Admin
+export const updateSale = asyncHandler(async (req, res) => {
+    const sale = await Sale.findById(req.params.id);
+
+    if (sale) {
+        sale.soldBy = req.body.soldBy || sale.soldBy;
+        sale.type = req.body.type || sale.type;
+        sale.comboName = req.body.comboName !== undefined ? req.body.comboName : sale.comboName;
+        sale.totalAmount = req.body.totalAmount !== undefined ? req.body.totalAmount : sale.totalAmount;
+
+        if (req.body.event !== undefined) {
+            sale.event = req.body.event || null;
+        }
+
+        const updatedSale = await sale.save();
+        const populatedSale = await Sale.findById(updatedSale._id)
+            .populate('user', 'name email')
+            .populate('event', 'name');
+
+        res.json(populatedSale);
+    } else {
+        res.status(404);
+        throw new Error('Sale not found');
+    }
+});
+
+// @desc    Delete sale (admin only)
+// @route   DELETE /api/admin/sales/:id
+// @access  Private/Admin
+export const deleteSale = asyncHandler(async (req, res) => {
+    const sale = await Sale.findById(req.params.id);
+
+    if (sale) {
+        await Sale.deleteOne({ _id: req.params.id });
+        res.json({ message: 'Sale removed' });
+    } else {
+        res.status(404);
+        throw new Error('Sale not found');
+    }
+});
+
+// @desc    Update expense (admin only)
+// @route   PUT /api/admin/expenses/:id
+// @access  Private/Admin
+export const updateExpense = asyncHandler(async (req, res) => {
+    const expense = await Expense.findById(req.params.id);
+
+    if (expense) {
+        expense.description = req.body.description || expense.description;
+        expense.category = req.body.category || expense.category;
+        expense.amount = req.body.amount !== undefined ? req.body.amount : expense.amount;
+        expense.date = req.body.date ? new Date(req.body.date) : expense.date;
+
+        if (req.body.event !== undefined) {
+            expense.event = req.body.event || null;
+        }
+
+        const updatedExpense = await expense.save();
+        const populatedExpense = await Expense.findById(updatedExpense._id)
+            .populate('user', 'name email')
+            .populate('event', 'name');
+
+        res.json(populatedExpense);
+    } else {
+        res.status(404);
+        throw new Error('Expense not found');
+    }
+});
+
+// @desc    Delete expense (admin only)
+// @route   DELETE /api/admin/expenses/:id
+// @access  Private/Admin
+export const deleteExpense = asyncHandler(async (req, res) => {
+    const expense = await Expense.findById(req.params.id);
+
+    if (expense) {
+        await Expense.deleteOne({ _id: req.params.id });
+        res.json({ message: 'Expense removed' });
+    } else {
+        res.status(404);
+        throw new Error('Expense not found');
+    }
+});
+

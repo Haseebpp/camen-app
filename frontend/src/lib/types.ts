@@ -95,3 +95,45 @@ export interface DashboardData {
     salesCount: number;
     productsCount: number;
 }
+
+// Event Report Types
+export interface EventSummary {
+    event: Event;
+    revenue: number;
+    expenses: number;
+    cogs: number;
+    profit: number;
+    saleCount: number;
+    expenseCount: number;
+}
+
+export interface StaffPerformance {
+    staffName: string;
+    totalSales: number;
+    totalRevenue: number;
+    averageOrderValue: number;
+}
+
+export interface ExpenseByCategory {
+    category: string;
+    total: number;
+    count: number;
+}
+
+export interface SalesTimelineItem {
+    date: string;
+    amount: number;
+}
+
+export interface EventsReportData {
+    events: EventSummary[];
+    staffPerformance: StaffPerformance[];
+    expensesByCategory: ExpenseByCategory[];
+    salesTimeline: SalesTimelineItem[];
+    totals: {
+        revenue: number;
+        expenses: number;
+        profit: number;
+    };
+}
+

@@ -26,6 +26,7 @@ export interface AdminSale {
     type: string;
     totalAmount: number;
     soldBy: string;
+    comboName?: string;
     user: { _id: string; name: string; email: string };
     event?: { _id: string; name: string };
 }
@@ -100,10 +101,28 @@ const adminService = {
         return response.data;
     },
 
+    async updateSale(id: string, data: Partial<AdminSale>): Promise<AdminSale> {
+        const response = await axios.put(`/admin/sales/${id}`, data);
+        return response.data;
+    },
+
+    async deleteSale(id: string): Promise<void> {
+        await axios.delete(`/admin/sales/${id}`);
+    },
+
     // Expenses
     async getExpenses(): Promise<AdminExpense[]> {
         const response = await axios.get('/admin/expenses');
         return response.data;
+    },
+
+    async updateExpense(id: string, data: Partial<AdminExpense>): Promise<AdminExpense> {
+        const response = await axios.put(`/admin/expenses/${id}`, data);
+        return response.data;
+    },
+
+    async deleteExpense(id: string): Promise<void> {
+        await axios.delete(`/admin/expenses/${id}`);
     },
 
     // Events
@@ -128,3 +147,4 @@ const adminService = {
 };
 
 export default adminService;
+
