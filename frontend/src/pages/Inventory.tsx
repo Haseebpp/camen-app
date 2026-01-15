@@ -12,7 +12,7 @@ import { LOGO_URL } from '@/lib/constants';
 
 const Inventory: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { products, isLoading } = useSelector((state: RootState) => state.products);
+    const { products, isLoading, error } = useSelector((state: RootState) => state.products);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -104,6 +104,12 @@ const Inventory: React.FC = () => {
                 />
             </div>
 
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+                    <span className="font-bold">Error:</span> {error}
+                </div>
+            )}
+
             <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <Table>
                     <TableHeader>
@@ -156,8 +162,8 @@ const Inventory: React.FC = () => {
                                     <TableCell className="text-center">
                                         <span
                                             className={`px-3 py-1 rounded-full text-xs font-medium ${product.stockQuantity < 5
-                                                    ? 'bg-red-100 text-red-700'
-                                                    : 'bg-green-100 text-green-700'
+                                                ? 'bg-red-100 text-red-700'
+                                                : 'bg-green-100 text-green-700'
                                                 }`}
                                         >
                                             {product.stockQuantity}

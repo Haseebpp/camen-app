@@ -18,9 +18,11 @@ import { PRESET_COMBOS } from '@/lib/constants';
 
 const Sales: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { products } = useSelector((state: RootState) => state.products);
-    const { events } = useSelector((state: RootState) => state.events);
-    const { isLoading: saleLoading } = useSelector((state: RootState) => state.sales);
+    const { products, error: productError } = useSelector((state: RootState) => state.products);
+    const { events, error: eventError } = useSelector((state: RootState) => state.events);
+    const { isLoading: saleLoading, error: saleError } = useSelector((state: RootState) => state.sales);
+
+    const error = productError || eventError || saleError;
 
     const [cart, setCart] = useState<CartItem[]>([]);
     const [saleType, setSaleType] = useState<SaleType>('INDIVIDUAL');
@@ -146,7 +148,12 @@ const Sales: React.FC = () => {
     const totalAmount = cart.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
     return (
-        <div className="flex h-[calc(100vh-140px)] gap-6">
+        <div className="flex h-[calc(100vh-140px)] gap-6 text-left">
+            {error && (
+                <div className="fixed top-20 right-6 z-50 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 max-w-md">
+                    <span className="font-bold">Error:</span> {error}
+                </div>
+            )}
             {/* Product Selection Area */}
             <div className={`flex-1 flex flex-col ${activeTab === 'checkout' ? 'hidden md:flex' : 'flex'}`}>
                 <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -239,8 +246,8 @@ const Sales: React.FC = () => {
                             key={product._id}
                             onClick={() => addToCart(product)}
                             className={`bg-white p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md ${product.stockQuantity === 0
-                                    ? 'opacity-50 border-red-200 pointer-events-none'
-                                    : 'border-slate-200 hover:border-indigo-300'
+                                ? 'opacity-50 border-red-200 pointer-events-none'
+                                : 'border-slate-200 hover:border-indigo-300'
                                 }`}
                         >
                             <div className="flex justify-between items-start mb-2">

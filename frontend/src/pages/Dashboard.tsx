@@ -39,9 +39,11 @@ const Dashboard: React.FC = () => {
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
     const [reportData, setReportData] = useState<EventsReportData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchData = async () => {
         setIsLoading(true);
+        setError(null);
         try {
             const [dashData, eventsReportData] = await Promise.all([
                 reportService.getDashboardData(),
@@ -51,6 +53,7 @@ const Dashboard: React.FC = () => {
             setReportData(eventsReportData);
         } catch (error) {
             console.error('Failed to load dashboard data:', error);
+            setError('Failed to load dashboard data. Please check your connection and try again.');
         } finally {
             setIsLoading(false);
         }
@@ -62,10 +65,32 @@ const Dashboard: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin text-indigo-600">
-                    <RefreshCw size={32} />
+            <div className="flex items-center justify-center h-96">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin text-indigo-600">
+                        <RefreshCw size={40} />
+                    </div>
+                    <p className="text-slate-500 font-medium">Loading dashboard...</p>
                 </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center h-96 text-center">
+                <div className="bg-red-50 p-6 rounded-full mb-4">
+                    <AlertTriangle size={40} className="text-red-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">Something went wrong</h3>
+                <p className="text-slate-500 mb-6 max-w-md">{error}</p>
+                <button
+                    onClick={fetchData}
+                    className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
+                >
+                    <RefreshCw size={18} />
+                    Try Again
+                </button>
             </div>
         );
     }
@@ -77,8 +102,8 @@ const Dashboard: React.FC = () => {
         currentBalance: 0,
     };
 
-    // Get ongoing events
-    const ongoingEvents = reportData?.events.filter(e => e.event.status === 'OPEN') || [];
+    // Get ongoing events - Safe access
+    const ongoingEvents = reportData?.events?.filter(e => e.event.status === 'OPEN') || [];
     const lowStockProducts = dashboardData?.lowStockProducts || [];
     const recentSales = dashboardData?.recentSales || [];
 
@@ -165,7 +190,7 @@ const Dashboard: React.FC = () => {
                             <Calendar size={20} />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-slate-800">{reportData?.events.length || 0}</p>
+                            <p className="text-2xl font-bold text-slate-800">{reportData?.events?.length || 0}</p>
                             <p className="text-xs text-slate-500">Total Events</p>
                         </div>
                     </div>

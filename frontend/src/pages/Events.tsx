@@ -22,7 +22,7 @@ import { Modal } from '@/components/ui/modal';
 
 const Events: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { events, isLoading } = useSelector((state: RootState) => state.events);
+    const { events, isLoading, error } = useSelector((state: RootState) => state.events);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -82,6 +82,12 @@ const Events: React.FC = () => {
                     <Plus size={18} /> New Event
                 </Button>
             </div>
+
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+                    <span className="font-bold">Error:</span> {error}
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {isLoading ? (

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 
 const Settings: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { settings, isLoading } = useSelector((state: RootState) => state.settings);
+    const { settings, isLoading, error } = useSelector((state: RootState) => state.settings);
 
     useEffect(() => {
         dispatch(fetchSettings());
@@ -16,12 +16,25 @@ const Settings: React.FC = () => {
         dispatch(updateSettings({ openingBalance: value }));
     };
 
-    if (isLoading || !settings) {
+    if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="animate-pulse text-indigo-600">Loading settings...</div>
             </div>
         );
+    }
+
+    if (error) {
+        return (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                <p className="font-bold">Error loading settings</p>
+                <p>{error}</p>
+            </div>
+        );
+    }
+
+    if (!settings) {
+        return null;
     }
 
     return (

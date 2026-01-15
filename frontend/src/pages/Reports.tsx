@@ -52,6 +52,7 @@ const Reports: React.FC = () => {
     const [financials, setFinancials] = useState<Financials | null>(null);
     const [reportData, setReportData] = useState<EventsReportData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<TabType>('overview');
 
     useEffect(() => {
@@ -60,6 +61,7 @@ const Reports: React.FC = () => {
 
     const fetchData = async () => {
         setIsLoading(true);
+        setError(null);
         try {
             const [financialsData, eventsReportData] = await Promise.all([
                 reportService.getFinancials(),
@@ -69,6 +71,7 @@ const Reports: React.FC = () => {
             setReportData(eventsReportData);
         } catch (error) {
             console.error('Failed to load report data:', error);
+            setError('Failed to load report data. Please check your connection and try again.');
         } finally {
             setIsLoading(false);
         }
@@ -289,10 +292,32 @@ const Reports: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin text-indigo-600">
-                    <RefreshCw size={32} />
+            <div className="flex items-center justify-center h-96">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin text-indigo-600">
+                        <RefreshCw size={40} />
+                    </div>
+                    <p className="text-slate-500 font-medium">Loading reports...</p>
                 </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center h-96 text-center">
+                <div className="bg-red-50 p-6 rounded-full mb-4">
+                    <Users size={40} className="text-red-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">Something went wrong</h3>
+                <p className="text-slate-500 mb-6 max-w-md">{error}</p>
+                <button
+                    onClick={fetchData}
+                    className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
+                >
+                    <RefreshCw size={18} />
+                    Try Again
+                </button>
             </div>
         );
     }

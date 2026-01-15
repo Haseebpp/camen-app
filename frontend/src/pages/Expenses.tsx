@@ -11,7 +11,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 
 const Expenses: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { expenses, isLoading } = useSelector((state: RootState) => state.expenses);
+    const { expenses, isLoading, error } = useSelector((state: RootState) => state.expenses);
     const { events } = useSelector((state: RootState) => state.events);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -87,6 +87,12 @@ const Expenses: React.FC = () => {
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
             </div>
+
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+                    <span className="font-bold">Error:</span> {error}
+                </div>
+            )}
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <Table>
