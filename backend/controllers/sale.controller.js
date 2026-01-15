@@ -34,7 +34,8 @@ export const createSale = asyncHandler(async (req, res) => {
 
     // Verify stock and update products
     for (const item of items) {
-        const product = await Product.findOne({ _id: item.productId, user: req.user._id });
+        // Removed user check to allow selling shared products
+        const product = await Product.findOne({ _id: item.productId });
 
         if (!product) {
             res.status(404);

@@ -7,12 +7,13 @@ import {
     LayoutGrid,
     Calendar,
     Sparkles,
+    History,
 } from 'lucide-react';
 import type { RootState, AppDispatch } from '@/state/store';
 import type { Product, CartItem, SaleType } from '@/lib/types';
 import { fetchProducts } from '@/state/slices/productSlice';
 import { fetchEvents } from '@/state/slices/eventSlice';
-import { createSale } from '@/state/slices/saleSlice';
+import { createSale, fetchSales } from '@/state/slices/saleSlice';
 import { Button } from '@/components/ui/button';
 import { PRESET_COMBOS } from '@/lib/constants';
 
@@ -20,7 +21,7 @@ const Sales: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { products, error: productError } = useSelector((state: RootState) => state.products);
     const { events, error: eventError } = useSelector((state: RootState) => state.events);
-    const { isLoading: saleLoading, error: saleError } = useSelector((state: RootState) => state.sales);
+    const { sales, isLoading: saleLoading, error: saleError } = useSelector((state: RootState) => state.sales);
 
     const error = productError || eventError || saleError;
 
@@ -28,13 +29,14 @@ const Sales: React.FC = () => {
     const [saleType, setSaleType] = useState<SaleType>('INDIVIDUAL');
     const [comboName, setComboName] = useState('');
     const [selectedEventId, setSelectedEventId] = useState('');
-    const [activeTab, setActiveTab] = useState<'products' | 'checkout'>('products');
+    const [activeTab, setActiveTab] = useState<'products' | 'checkout' | 'history'>('products');
 
     const openEvents = events.filter((e) => e.status === 'OPEN');
 
     useEffect(() => {
         dispatch(fetchProducts());
         dispatch(fetchEvents());
+        dispatch(fetchSales());
     }, [dispatch]);
 
     const addToCart = (product: Product) => {
@@ -155,7 +157,7 @@ const Sales: React.FC = () => {
                 </div>
             )}
             {/* Product Selection Area */}
-            <div className={`flex-1 flex flex-col ${activeTab === 'checkout' ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`flex-1 flex flex-col ${activeTab !== 'products' ? 'hidden md:flex' : 'flex'} ${activeTab === 'history' ? 'md:hidden' : ''}`}>
                 <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <h2 className="text-2xl font-bold text-slate-800">Select Products</h2>
                     <div className="flex gap-2 bg-white p-1 rounded-lg border border-slate-200">
@@ -271,8 +273,10 @@ const Sales: React.FC = () => {
 
             {/* Cart / Checkout Area */}
             <div
-                className={`w-full md:w-96 bg-white rounded-2xl shadow-xl flex flex-col border border-slate-200 ${activeTab === 'products' ? 'hidden md:flex' : 'flex'
-                    }`}
+                className={`w-full md:w-96 bg-white rounded-2xl shadow-xl flex flex-col border border-slate-200 
+                    ${activeTab === 'checkout' ? 'flex' : 'hidden md:flex'}
+                    ${activeTab === 'history' ? 'hidden' : ''} 
+                `}
             >
                 <div className="p-6 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
                     <h2 className="text-xl font-bold flex items-center gap-2">
@@ -339,7 +343,14 @@ const Sales: React.FC = () => {
             </div>
 
             {/* Mobile Toggle */}
-            <div className="md:hidden fixed bottom-6 right-6 z-50">
+            <div className="md:hidden fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+                <button
+                    onClick={() => setActiveTab('history')}
+                    className={`p-4 rounded-full shadow-lg ${activeTab === 'history' ? 'bg-indigo-700 text-white' : 'bg-white text-indigo-600'
+                        }`}
+                >
+                    <History size={24} />
+                </button>
                 <button
                     onClick={() => setActiveTab(activeTab === 'products' ? 'checkout' : 'products')}
                     className="bg-indigo-600 text-white p-4 rounded-full shadow-lg relative"
@@ -351,6 +362,60 @@ const Sales: React.FC = () => {
                         </span>
                     )}
                 </button>
+            </div>
+
+            {/* History Tab Content (Desktop Sidebar or Full View) */}
+            <div
+                className={`w-full md:w-80 lg:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 flex-col 
+                    ${activeTab === 'history' ? 'flex' : 'hidden md:flex'}
+                    ${activeTab === 'checkout' && window.innerWidth < 768 ? 'hidden' : ''}
+                `}
+            >
+                <div className="p-6 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
+                    <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-xl font-bold flex items-center gap-2">
+                            <History className="text-indigo-600" /> My History
+                        </h2>
+                        <div className="text-xs font-semibold bg-indigo-100 text-indigo-700 px-2 py-1 rounded">
+                            {sales.length} Sales
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {sales.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                            <History size={48} className="mb-4 opacity-20" />
+                            <p>No sales history found</p>
+                        </div>
+                    ) : (
+                        sales.map((sale) => (
+                            <div key={sale._id} className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <p className="font-semibold text-slate-800">
+                                            SAR {sale.totalAmount.toFixed(2)}
+                                        </p>
+                                        <p className="text-xs text-slate-500">
+                                            {new Date(sale.timestamp).toLocaleString()}
+                                        </p>
+                                    </div>
+                                    <span className={`text-[10px] px-2 py-1 rounded font-medium ${sale.type === 'COMBO' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                                        }`}>
+                                        {sale.type}
+                                    </span>
+                                </div>
+                                <div className="space-y-1">
+                                    {sale.items.map((item, idx) => (
+                                        <div key={idx} className="flex justify-between text-sm text-slate-600">
+                                            <span>{item.quantity}x {item.productName}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     );

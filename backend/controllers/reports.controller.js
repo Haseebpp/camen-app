@@ -9,10 +9,11 @@ import Settings from '../models/settings.model.js';
 // @route   GET /api/reports/financials
 // @access  Private
 export const getFinancials = asyncHandler(async (req, res) => {
-    const settings = await Settings.findOne({ user: req.user._id }) || { openingBalance: 0 };
-    const sales = await Sale.find({ user: req.user._id });
-    const products = await Product.find({ user: req.user._id });
-    const expenses = await Expense.find({ user: req.user._id });
+    // Global visibility: Removed user filters
+    const settings = await Settings.findOne({}) || { openingBalance: 0 };
+    const sales = await Sale.find({});
+    const products = await Product.find({});
+    const expenses = await Expense.find({});
 
     const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
 
@@ -41,10 +42,11 @@ export const getFinancials = asyncHandler(async (req, res) => {
 // @route   GET /api/reports/dashboard
 // @access  Private
 export const getDashboardData = asyncHandler(async (req, res) => {
-    const settings = await Settings.findOne({ user: req.user._id }) || { openingBalance: 0 };
-    const sales = await Sale.find({ user: req.user._id }).sort({ timestamp: -1 });
-    const products = await Product.find({ user: req.user._id });
-    const expenses = await Expense.find({ user: req.user._id });
+    // Global visibility: Removed user filters
+    const settings = await Settings.findOne({}) || { openingBalance: 0 };
+    const sales = await Sale.find({}).sort({ timestamp: -1 });
+    const products = await Product.find({});
+    const expenses = await Expense.find({});
 
     const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
     const cogs = products.reduce((sum, product) => sum + (product.costPrice * product.soldQuantity), 0);
@@ -85,10 +87,11 @@ export const getDashboardData = asyncHandler(async (req, res) => {
 // @route   GET /api/reports/events-summary
 // @access  Private
 export const getEventsReport = asyncHandler(async (req, res) => {
-    const events = await Event.find({ user: req.user._id }).sort({ date: -1 });
-    const sales = await Sale.find({ user: req.user._id }).populate('event', 'name');
-    const expenses = await Expense.find({ user: req.user._id }).populate('event', 'name');
-    const products = await Product.find({ user: req.user._id });
+    // Global visibility: Removed user filters
+    const events = await Event.find({}).sort({ date: -1 });
+    const sales = await Sale.find({}).populate('event', 'name');
+    const expenses = await Expense.find({}).populate('event', 'name');
+    const products = await Product.find({});
 
     // Create product lookup for COGS calculation
     const productMap = new Map(products.map(p => [p._id.toString(), p]));

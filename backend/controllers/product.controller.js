@@ -5,7 +5,8 @@ import Product from '../models/product.model.js';
 // @route   GET /api/products
 // @access  Private
 export const getProducts = asyncHandler(async (req, res) => {
-    const products = await Product.find({ user: req.user._id }).sort({ createdAt: -1 });
+    // Removed user filter to allow all staff to see products
+    const products = await Product.find({}).sort({ createdAt: -1 });
     res.json(products);
 });
 
@@ -13,7 +14,8 @@ export const getProducts = asyncHandler(async (req, res) => {
 // @route   GET /api/products/:id
 // @access  Private
 export const getProduct = asyncHandler(async (req, res) => {
-    const product = await Product.findOne({ _id: req.params.id, user: req.user._id });
+    // Removed user filter
+    const product = await Product.findOne({ _id: req.params.id });
 
     if (product) {
         res.json(product);
