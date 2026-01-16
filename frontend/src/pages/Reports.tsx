@@ -81,205 +81,473 @@ const Reports: React.FC = () => {
         if (!reportData || !financials) return;
 
         const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 14;
+        const currentDate = new Date();
+        const dateStr = currentDate.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
+        const timeStr = currentDate.toLocaleTimeString('en-US', {
+            hour: '2-digit', minute: '2-digit'
+        });
 
-        // Title
-        doc.setFontSize(20);
-        doc.text('SalesTrack - Comprehensive Report', 14, 22);
+        // Helper function to add page footer
+        const addFooter = (pageNum: number, totalPages: number) => {
+            doc.setFontSize(8);
+            doc.setTextColor(128, 128, 128);
+            doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+            doc.text(`Generated: ${dateStr} at ${timeStr}`, margin, pageHeight - 10);
+            doc.text('SalesTrack Report', pageWidth - margin, pageHeight - 10, { align: 'right' });
+        };
 
-        // Metadata
-        doc.setFontSize(11);
-        doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
-        doc.text(`User: ${settings?.userEmail || 'N/A'}`, 14, 36);
+        // Helper function to add page header
+        const addHeader = () => {
+            doc.setFillColor(79, 70, 229); // Indigo
+            doc.rect(0, 0, pageWidth, 25, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text('SalesTrack', margin, 16);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Business Analytics Report', pageWidth - margin, 12, { align: 'right' });
+            doc.text(dateStr, pageWidth - margin, 18, { align: 'right' });
+            doc.setTextColor(0, 0, 0);
+        };
 
-        // Summary Section
-        doc.setFillColor(241, 245, 249);
-        doc.rect(14, 45, 182, 35, 'F');
-        doc.setFontSize(12);
-        doc.text('Financial Summary', 20, 55);
-        doc.setFontSize(10);
-        doc.text(`Total Revenue: SAR ${reportData.totals.revenue.toLocaleString()}`, 20, 65);
-        doc.text(`Total Expenses: SAR ${reportData.totals.expenses.toLocaleString()}`, 80, 65);
-        doc.text(`Net Profit: SAR ${reportData.totals.profit.toLocaleString()}`, 140, 65);
-        doc.text(`Events Count: ${reportData.events.length}`, 20, 73);
-        doc.text(`Staff Members: ${reportData.staffPerformance.length}`, 80, 73);
+        // Page 1: Header and Executive Summary
+        addHeader();
 
-        // Events Table
+        // Executive Summary Box
+        let yPos = 35;
+        doc.setFillColor(248, 250, 252); // Slate-50
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 45, 3, 3, 'F');
+
         doc.setFontSize(14);
-        doc.text('Event Performance Summary', 14, 95);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 41, 59); // Slate-800
+        doc.text('Executive Summary', margin + 5, yPos + 10);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+
+        // Calculate profit margin
+        const profitMargin = reportData.totals.revenue > 0
+            ? ((reportData.totals.profit / reportData.totals.revenue) * 100).toFixed(1)
+            : '0.0';
+
+        // KPIs in columns
+        const colWidth = (pageWidth - 2 * margin - 10) / 4;
+        const kpiY = yPos + 25;
+
+        // Revenue
+        doc.setTextColor(34, 197, 94); // Green
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`SAR ${reportData.totals.revenue.toLocaleString()}`, margin + 5, kpiY);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 116, 139);
+        doc.text('Total Revenue', margin + 5, kpiY + 7);
+
+        // Expenses
+        doc.setTextColor(239, 68, 68); // Red
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`SAR ${reportData.totals.expenses.toLocaleString()}`, margin + 5 + colWidth, kpiY);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 116, 139);
+        doc.text('Total Expenses', margin + 5 + colWidth, kpiY + 7);
+
+        // Profit
+        doc.setTextColor(99, 102, 241); // Indigo
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`SAR ${reportData.totals.profit.toLocaleString()}`, margin + 5 + colWidth * 2, kpiY);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 116, 139);
+        doc.text('Net Profit', margin + 5 + colWidth * 2, kpiY + 7);
+
+        // Profit Margin
+        doc.setTextColor(245, 158, 11); // Amber
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${profitMargin}%`, margin + 5 + colWidth * 3, kpiY);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 116, 139);
+        doc.text('Profit Margin', margin + 5 + colWidth * 3, kpiY + 7);
+
+        // Additional Stats
+        yPos = 90;
+        doc.setFontSize(10);
+        doc.setTextColor(71, 85, 105);
+        doc.text(`Events: ${reportData.events.length}`, margin, yPos);
+        doc.text(`Staff Members: ${reportData.staffPerformance.length}`, margin + 50, yPos);
+        doc.text(`Expense Categories: ${reportData.expensesByCategory.length}`, margin + 120, yPos);
+
+        // Event Performance Table
+        yPos = 105;
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 41, 59);
+        doc.text('Event Performance', margin, yPos);
 
         const eventsData = reportData.events.map((ev) => [
-            ev.event.name,
-            ev.event.location,
-            new Date(ev.event.date).toLocaleDateString(),
+            ev.event.name.length > 20 ? ev.event.name.substring(0, 20) + '...' : ev.event.name,
+            ev.event.location.length > 12 ? ev.event.location.substring(0, 12) + '...' : ev.event.location,
+            new Date(ev.event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }),
             ev.event.status,
+            ev.saleCount.toString(),
             `SAR ${ev.revenue.toLocaleString()}`,
             `SAR ${ev.expenses.toLocaleString()}`,
             `SAR ${ev.profit.toLocaleString()}`,
         ]);
 
         autoTable(doc, {
-            startY: 100,
-            head: [['Event', 'Location', 'Date', 'Status', 'Revenue', 'Expenses', 'Profit']],
+            startY: yPos + 5,
+            head: [['Event', 'Location', 'Date', 'Status', 'Sales', 'Revenue', 'Expenses', 'Profit']],
             body: eventsData,
             theme: 'grid',
-            headStyles: { fillColor: [79, 70, 229] },
-            styles: { fontSize: 8 },
+            headStyles: {
+                fillColor: [79, 70, 229],
+                textColor: 255,
+                fontStyle: 'bold',
+                fontSize: 8
+            },
+            styles: { fontSize: 7, cellPadding: 2 },
+            alternateRowStyles: { fillColor: [248, 250, 252] },
+            columnStyles: {
+                5: { halign: 'right', textColor: [34, 197, 94] },
+                6: { halign: 'right', textColor: [239, 68, 68] },
+                7: { halign: 'right', fontStyle: 'bold' },
+            },
         });
 
-        // Staff Performance
-        const finalY1 = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY || 150;
-        doc.text('Staff Performance', 14, finalY1 + 15);
+        // Staff Performance Table
+        let finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY || 150;
 
-        const staffData = reportData.staffPerformance.map((s) => [
+        if (finalY > pageHeight - 80) {
+            doc.addPage();
+            addHeader();
+            finalY = 35;
+        }
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 41, 59);
+        doc.text('Staff Performance Rankings', margin, finalY + 15);
+
+        const staffData = reportData.staffPerformance.map((s, idx) => [
+            `#${idx + 1}`,
             s.staffName,
             s.totalSales.toString(),
             `SAR ${s.totalRevenue.toLocaleString()}`,
-            `SAR ${s.averageOrderValue}`,
+            `SAR ${s.averageOrderValue.toLocaleString()}`,
         ]);
 
         autoTable(doc, {
-            startY: finalY1 + 20,
-            head: [['Staff Member', 'Total Sales', 'Total Revenue', 'Avg Order Value']],
+            startY: finalY + 20,
+            head: [['Rank', 'Staff Member', 'Sales Count', 'Total Revenue', 'Avg Order Value']],
             body: staffData,
             theme: 'striped',
+            headStyles: {
+                fillColor: [34, 197, 94],
+                textColor: 255,
+                fontStyle: 'bold',
+                fontSize: 8
+            },
+            styles: { fontSize: 8 },
+            columnStyles: {
+                0: { halign: 'center', fontStyle: 'bold' },
+                3: { halign: 'right', textColor: [34, 197, 94] },
+                4: { halign: 'right' },
+            },
         });
 
-        // Expenses by Category
-        const finalY2 = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY || 200;
+        // Expenses by Category Table
+        finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY || 200;
 
-        if (finalY2 > 250) {
+        if (finalY > pageHeight - 80) {
             doc.addPage();
-            doc.text('Expenses by Category', 14, 20);
-
-            const expenseData = reportData.expensesByCategory.map((e) => [
-                e.category,
-                e.count.toString(),
-                `SAR ${e.total.toLocaleString()}`,
-            ]);
-
-            autoTable(doc, {
-                startY: 25,
-                head: [['Category', 'Count', 'Total Amount']],
-                body: expenseData,
-                theme: 'striped',
-            });
-        } else {
-            doc.text('Expenses by Category', 14, finalY2 + 15);
-
-            const expenseData = reportData.expensesByCategory.map((e) => [
-                e.category,
-                e.count.toString(),
-                `SAR ${e.total.toLocaleString()}`,
-            ]);
-
-            autoTable(doc, {
-                startY: finalY2 + 20,
-                head: [['Category', 'Count', 'Total Amount']],
-                body: expenseData,
-                theme: 'striped',
-            });
+            addHeader();
+            finalY = 35;
         }
 
-        doc.save('SalesTrack_Comprehensive_Report.pdf');
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 41, 59);
+        doc.text('Expense Breakdown by Category', margin, finalY + 15);
+
+        const totalExpenseAmount = reportData.expensesByCategory.reduce((sum, e) => sum + e.total, 0);
+        const expenseData = reportData.expensesByCategory.map((e) => [
+            e.category,
+            e.count.toString(),
+            `SAR ${e.total.toLocaleString()}`,
+            `SAR ${Math.round(e.total / e.count).toLocaleString()}`,
+            `${((e.total / totalExpenseAmount) * 100).toFixed(1)}%`,
+        ]);
+
+        autoTable(doc, {
+            startY: finalY + 20,
+            head: [['Category', 'Count', 'Total Amount', 'Average', '% of Total']],
+            body: expenseData,
+            theme: 'striped',
+            headStyles: {
+                fillColor: [239, 68, 68],
+                textColor: 255,
+                fontStyle: 'bold',
+                fontSize: 8
+            },
+            styles: { fontSize: 8 },
+            columnStyles: {
+                2: { halign: 'right', textColor: [239, 68, 68] },
+                3: { halign: 'right' },
+                4: { halign: 'right', fontStyle: 'bold' },
+            },
+        });
+
+        // Sales Timeline Summary
+        finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY || 250;
+
+        if (finalY > pageHeight - 60) {
+            doc.addPage();
+            addHeader();
+            finalY = 35;
+        }
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 41, 59);
+        doc.text('30-Day Sales Summary', margin, finalY + 15);
+
+        const nonZeroDays = reportData.salesTimeline.filter(t => t.amount > 0);
+        const totalTimelineAmount = nonZeroDays.reduce((sum, t) => sum + t.amount, 0);
+        const avgDaily = nonZeroDays.length > 0 ? totalTimelineAmount / nonZeroDays.length : 0;
+        const maxDay = nonZeroDays.reduce((max, t) => t.amount > max.amount ? t : max, { date: '', amount: 0 });
+
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(margin, finalY + 20, pageWidth - 2 * margin, 30, 3, 3, 'F');
+
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        const statsY = finalY + 35;
+        const statsColWidth = (pageWidth - 2 * margin) / 4;
+
+        doc.setTextColor(99, 102, 241);
+        doc.text(`Active Days: ${nonZeroDays.length}`, margin + 10, statsY);
+        doc.setTextColor(34, 197, 94);
+        doc.text(`Avg Daily: SAR ${Math.round(avgDaily).toLocaleString()}`, margin + 10 + statsColWidth, statsY);
+        doc.setTextColor(245, 158, 11);
+        doc.text(`Best Day: SAR ${maxDay.amount.toLocaleString()}`, margin + 10 + statsColWidth * 2, statsY);
+        doc.setTextColor(139, 92, 246);
+        doc.text(`30-Day Total: SAR ${totalTimelineAmount.toLocaleString()}`, margin + 10 + statsColWidth * 3, statsY);
+
+        // Add footers to all pages
+        const totalPages = doc.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            addFooter(i, totalPages);
+        }
+
+        // Save with date in filename
+        const fileName = `SalesTrack_Report_${currentDate.toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
     };
 
     const exportExcel = () => {
         if (!reportData) return;
 
         const wb = XLSX.utils.book_new();
+        const currentDate = new Date();
+        const dateStr = currentDate.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
 
-        // Sheet 1: Summary
+        // Calculate additional metrics
+        const profitMargin = reportData.totals.revenue > 0
+            ? ((reportData.totals.profit / reportData.totals.revenue) * 100).toFixed(1)
+            : '0.0';
+        const nonZeroDays = reportData.salesTimeline.filter(t => t.amount > 0);
+        const totalTimelineAmount = nonZeroDays.reduce((sum, t) => sum + t.amount, 0);
+        const avgDaily = nonZeroDays.length > 0 ? Math.round(totalTimelineAmount / nonZeroDays.length) : 0;
+        const totalExpenseAmount = reportData.expensesByCategory.reduce((sum, e) => sum + e.total, 0);
+
+        // Sheet 1: Executive Summary
         const summaryData = [
-            ['SalesTrack Comprehensive Report'],
-            ['Generated:', new Date().toLocaleString()],
+            ['SALESTRACK BUSINESS REPORT'],
+            [],
+            ['Report Information'],
+            ['Generated Date', dateStr],
+            ['Generated Time', currentDate.toLocaleTimeString('en-US')],
             [],
             ['FINANCIAL SUMMARY'],
-            ['Total Revenue', `SAR ${reportData.totals.revenue.toLocaleString()}`],
-            ['Total Expenses', `SAR ${reportData.totals.expenses.toLocaleString()}`],
-            ['Net Profit', `SAR ${reportData.totals.profit.toLocaleString()}`],
+            ['Metric', 'Value (SAR)', 'Notes'],
+            ['Total Revenue', reportData.totals.revenue, 'All sales income'],
+            ['Total Expenses', reportData.totals.expenses, 'Operational costs'],
+            ['Net Profit', reportData.totals.profit, 'Revenue - Expenses'],
+            ['Profit Margin', `${profitMargin}%`, 'Profit / Revenue'],
             [],
-            ['COUNTS'],
-            ['Events', reportData.events.length],
+            ['BUSINESS METRICS'],
+            ['Metric', 'Count'],
+            ['Total Events', reportData.events.length],
             ['Staff Members', reportData.staffPerformance.length],
+            ['Expense Categories', reportData.expensesByCategory.length],
+            ['Active Sales Days (30d)', nonZeroDays.length],
+            [],
+            ['30-DAY SALES SUMMARY'],
+            ['Metric', 'Value (SAR)'],
+            ['Total Sales (30 days)', totalTimelineAmount],
+            ['Average Daily Sales', avgDaily],
+            ['Best Single Day', nonZeroDays.length > 0 ? Math.max(...nonZeroDays.map(d => d.amount)) : 0],
         ];
         const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+        wsSummary['!cols'] = [{ wch: 25 }, { wch: 20 }, { wch: 25 }];
         XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
 
-        // Sheet 2: Events
-        const wsEvents = XLSX.utils.json_to_sheet(
-            reportData.events.map((ev) => ({
-                'Event Name': ev.event.name,
-                'Location': ev.event.location,
-                'Date': new Date(ev.event.date).toLocaleDateString(),
-                'Status': ev.event.status,
-                'Sales Count': ev.saleCount,
-                'Expense Count': ev.expenseCount,
-                'Revenue': ev.revenue,
-                'Expenses': ev.expenses,
-                'COGS': ev.cogs,
-                'Profit': ev.profit,
-            }))
-        );
+        // Sheet 2: Events (Detailed)
+        const eventsSheetData = reportData.events.map((ev, idx) => ({
+            '#': idx + 1,
+            'Event Name': ev.event.name,
+            'Location': ev.event.location,
+            'Date': new Date(ev.event.date).toLocaleDateString('en-US'),
+            'Status': ev.event.status,
+            'Sales Count': ev.saleCount,
+            'Expense Count': ev.expenseCount,
+            'Revenue (SAR)': ev.revenue,
+            'Expenses (SAR)': ev.expenses,
+            'COGS (SAR)': ev.cogs,
+            'Profit (SAR)': ev.profit,
+            'Profit Margin %': ev.revenue > 0 ? ((ev.profit / ev.revenue) * 100).toFixed(1) : '0.0',
+        }));
+        const wsEvents = XLSX.utils.json_to_sheet(eventsSheetData);
+        wsEvents['!cols'] = [
+            { wch: 5 }, { wch: 25 }, { wch: 20 }, { wch: 12 }, { wch: 10 },
+            { wch: 12 }, { wch: 14 }, { wch: 15 }, { wch: 15 }, { wch: 12 },
+            { wch: 15 }, { wch: 15 }
+        ];
         XLSX.utils.book_append_sheet(wb, wsEvents, 'Events');
 
-        // Sheet 3: Staff Performance
-        const wsStaff = XLSX.utils.json_to_sheet(
-            reportData.staffPerformance.map((s) => ({
-                'Staff Name': s.staffName,
-                'Total Sales': s.totalSales,
-                'Total Revenue': s.totalRevenue,
-                'Average Order Value': s.averageOrderValue,
-            }))
-        );
+        // Sheet 3: Staff Performance (Ranked)
+        const staffSheetData = reportData.staffPerformance.map((s, idx) => ({
+            'Rank': idx + 1,
+            'Staff Name': s.staffName,
+            'Total Sales': s.totalSales,
+            'Total Revenue (SAR)': s.totalRevenue,
+            'Average Order Value (SAR)': s.averageOrderValue,
+            '% of Total Revenue': reportData.totals.revenue > 0
+                ? ((s.totalRevenue / reportData.totals.revenue) * 100).toFixed(1)
+                : '0.0',
+        }));
+        const wsStaff = XLSX.utils.json_to_sheet(staffSheetData);
+        wsStaff['!cols'] = [
+            { wch: 6 }, { wch: 20 }, { wch: 12 }, { wch: 20 }, { wch: 25 }, { wch: 18 }
+        ];
         XLSX.utils.book_append_sheet(wb, wsStaff, 'Staff Performance');
 
-        // Sheet 4: Expenses by Category
-        const wsExpenses = XLSX.utils.json_to_sheet(
-            reportData.expensesByCategory.map((e) => ({
-                'Category': e.category,
-                'Count': e.count,
-                'Total Amount': e.total,
-            }))
-        );
-        XLSX.utils.book_append_sheet(wb, wsExpenses, 'Expenses by Category');
+        // Sheet 4: Expenses by Category (with percentages)
+        const expensesCatData = reportData.expensesByCategory.map((e, idx) => ({
+            '#': idx + 1,
+            'Category': e.category,
+            'Transaction Count': e.count,
+            'Total Amount (SAR)': e.total,
+            'Average per Transaction (SAR)': Math.round(e.total / e.count),
+            '% of Total Expenses': ((e.total / totalExpenseAmount) * 100).toFixed(1),
+        }));
+        const wsExpensesCat = XLSX.utils.json_to_sheet(expensesCatData);
+        wsExpensesCat['!cols'] = [
+            { wch: 5 }, { wch: 20 }, { wch: 18 }, { wch: 20 }, { wch: 28 }, { wch: 18 }
+        ];
+        XLSX.utils.book_append_sheet(wb, wsExpensesCat, 'Expenses by Category');
 
-        // Sheet 5: Sales Timeline
-        const wsTimeline = XLSX.utils.json_to_sheet(
-            reportData.salesTimeline.map((t) => ({
+        // Sheet 5: Sales Timeline (30 days with running totals)
+        let runningTotal = 0;
+        const timelineData = reportData.salesTimeline.map((t, idx) => {
+            runningTotal += t.amount;
+            return {
+                'Day #': idx + 1,
                 'Date': t.date,
-                'Sales Amount': t.amount,
-            }))
-        );
+                'Day of Week': new Date(t.date).toLocaleDateString('en-US', { weekday: 'long' }),
+                'Sales Amount (SAR)': t.amount,
+                'Running Total (SAR)': runningTotal,
+                'Status': t.amount > 0 ? 'Active' : 'No Sales',
+            };
+        });
+        const wsTimeline = XLSX.utils.json_to_sheet(timelineData);
+        wsTimeline['!cols'] = [
+            { wch: 8 }, { wch: 12 }, { wch: 15 }, { wch: 18 }, { wch: 20 }, { wch: 10 }
+        ];
         XLSX.utils.book_append_sheet(wb, wsTimeline, 'Sales Timeline');
 
-        // Sheet 6: Products (from redux)
-        const wsProducts = XLSX.utils.json_to_sheet(
-            products.map((p) => ({
-                Code: p.itemCode,
-                Name: p.name,
-                Category: p.category,
-                Cost: p.costPrice,
-                Price: p.sellingPrice,
-                Stock: p.stockQuantity,
-                Sold: p.soldQuantity,
-            }))
-        );
+        // Sheet 6: Inventory (All Products)
+        const inventoryData = products.map((p, idx) => ({
+            '#': idx + 1,
+            'Item Code': p.itemCode,
+            'Product Name': p.name,
+            'Category': p.category,
+            'Cost Price (SAR)': p.costPrice,
+            'Selling Price (SAR)': p.sellingPrice,
+            'Profit per Unit (SAR)': p.sellingPrice - p.costPrice,
+            'Current Stock': p.stockQuantity,
+            'Initial Stock': p.initialStock,
+            'Quantity Sold': p.soldQuantity,
+            'Stock Status': p.stockQuantity <= 10 ? 'LOW STOCK' : 'OK',
+            'Revenue Potential (SAR)': p.stockQuantity * p.sellingPrice,
+        }));
+        const wsProducts = XLSX.utils.json_to_sheet(inventoryData);
+        wsProducts['!cols'] = [
+            { wch: 5 }, { wch: 12 }, { wch: 25 }, { wch: 15 }, { wch: 16 },
+            { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
+            { wch: 12 }, { wch: 20 }
+        ];
         XLSX.utils.book_append_sheet(wb, wsProducts, 'Inventory');
 
-        // Sheet 7: All Sales (from redux)
-        const wsSales = XLSX.utils.json_to_sheet(
-            sales.map((s) => ({
-                Date: new Date(s.timestamp).toLocaleString(),
-                Type: s.type,
-                ComboName: s.comboName || 'N/A',
-                TotalAmount: s.totalAmount,
-                SoldBy: s.soldBy,
-                Event: s.event?.name || 'N/A',
-            }))
-        );
+        // Sheet 7: All Sales (Detailed)
+        const allSalesData = sales.map((s, idx) => ({
+            '#': idx + 1,
+            'Date': new Date(s.timestamp).toLocaleDateString('en-US'),
+            'Time': new Date(s.timestamp).toLocaleTimeString('en-US'),
+            'Sale Type': s.type,
+            'Combo Name': s.comboName || 'N/A',
+            'Items Count': s.items?.length || 0,
+            'Total Amount (SAR)': s.totalAmount,
+            'Sold By': s.soldBy,
+            'Event': s.event?.name || 'No Event',
+            'Items Detail': s.items?.map(i => `${i.productName} x${i.quantity}`).join(', ') || 'N/A',
+        }));
+        const wsSales = XLSX.utils.json_to_sheet(allSalesData);
+        wsSales['!cols'] = [
+            { wch: 5 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 20 },
+            { wch: 12 }, { wch: 18 }, { wch: 15 }, { wch: 20 }, { wch: 50 }
+        ];
         XLSX.utils.book_append_sheet(wb, wsSales, 'All Sales');
 
-        XLSX.writeFile(wb, 'SalesTrack_Comprehensive_Report.xlsx');
+        // Sheet 8: All Expenses (from Redux if available, or summary message)
+        // Since we may not have individual expenses in Redux on this page,
+        // we'll create a placeholder with category-level detail
+        const allExpensesData = reportData.expensesByCategory.flatMap((cat, catIdx) => {
+            // Create summary rows for each category
+            return [{
+                '#': catIdx + 1,
+                'Category': cat.category,
+                'Transaction Count': cat.count,
+                'Total Amount (SAR)': cat.total,
+                'Average Amount (SAR)': Math.round(cat.total / cat.count),
+                'Notes': `${cat.count} transactions in this category`,
+            }];
+        });
+        const wsAllExpenses = XLSX.utils.json_to_sheet(allExpensesData);
+        wsAllExpenses['!cols'] = [
+            { wch: 5 }, { wch: 20 }, { wch: 18 }, { wch: 20 }, { wch: 20 }, { wch: 35 }
+        ];
+        XLSX.utils.book_append_sheet(wb, wsAllExpenses, 'Expenses Detail');
+
+        // Generate filename with date
+        const fileName = `SalesTrack_Report_${currentDate.toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(wb, fileName);
     };
 
     const tabs = [
