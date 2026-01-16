@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import asyncHandler from 'express-async-handler';
 import Sale from '../models/sale.model.js';
 import Product from '../models/product.model.js';
@@ -11,17 +12,29 @@ import Settings from '../models/settings.model.js';
 export const getFinancials = asyncHandler(async (req, res) => {
     // Global visibility: Removed user filters
     const settings = await Settings.findOne({}) || { openingBalance: 0 };
-    const sales = await Sale.find({});
-    const products = await Product.find({});
-    const expenses = await Expense.find({});
 
-    const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+    // 1. Total Revenue (Aggregation)
+    const revenueResult = await Sale.aggregate([
+        { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+    ]);
+    const totalRevenue = revenueResult[0]?.total || 0;
 
-    // Cost of Goods Sold
-    const cogs = products.reduce((sum, product) => sum + (product.costPrice * product.soldQuantity), 0);
+    // 2. Operational Expenses (Aggregation)
+    const expensesResult = await Expense.aggregate([
+        { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+    const operationalExpenses = expensesResult[0]?.total || 0;
 
-    // Operational Expenses
-    const operationalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    // 3. COGS (Global Aggregation)
+    const cogsResult = await Product.aggregate([
+        {
+            $group: {
+                _id: null,
+                total: { $sum: { $multiply: ["$costPrice", "$soldQuantity"] } }
+            }
+        }
+    ]);
+    const cogs = cogsResult[0]?.total || 0;
 
     const totalExpenses = cogs + operationalExpenses;
 
@@ -41,55 +54,76 @@ export const getFinancials = asyncHandler(async (req, res) => {
 // @desc    Get dashboard data
 // @route   GET /api/reports/dashboard
 // @access  Private
-// @access  Private
 export const getDashboardData = asyncHandler(async (req, res) => {
-    // Global visibility: Removed user filters
-    // Check for optional eventId filter
     const { eventId } = req.query;
-    const filter = {};
+    const matchFilter = {};
     if (eventId) {
-        filter.event = eventId;
+        matchFilter.event = new mongoose.Types.ObjectId(eventId);
     }
 
-    const settings = await Settings.findOne({}) || { openingBalance: 0 };
-    const sales = await Sale.find(filter).sort({ timestamp: -1 });
-    const products = await Product.find({});
-    const expenses = await Expense.find(filter);
+    const settings = await Settings.findOne({}).lean() || { openingBalance: 0 };
 
-    const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
-    const cogs = products.reduce((sum, product) => sum + (product.costPrice * product.soldQuantity), 0);
-    const operationalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    // Parallelize independent queries for better performance
+    const [
+        revenueResult,
+        expensesResult,
+        cogsResult,
+        salesCount,
+        productsCount,
+        recentSales,
+        lowStockProducts
+    ] = await Promise.all([
+        // 1. Revenue
+        Sale.aggregate([
+            { $match: matchFilter },
+            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+        ]),
+        // 2. Expenses
+        Expense.aggregate([
+            { $match: matchFilter },
+            { $group: { _id: null, total: { $sum: "$amount" } } }
+        ]),
+        // 3. COGS (Global for now, as per original logic)
+        Product.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: { $multiply: ["$costPrice", "$soldQuantity"] } }
+                }
+            }
+        ]),
+        // 4. Counts
+        Sale.countDocuments(matchFilter),
+        Product.estimatedDocumentCount(),
+        // 5. Recent Sales
+        Sale.find(matchFilter)
+            .sort({ timestamp: -1 })
+            .limit(7)
+            .select('totalAmount timestamp')
+            .lean(),
+        // 6. Low Stock
+        Product.find({ stockQuantity: { $lte: 10 } }) // Only fetch actually low stock items
+            .sort({ stockQuantity: 1 })
+            .limit(5)
+            .select('name stockQuantity')
+            .lean()
+    ]);
+
+    const totalRevenue = revenueResult[0]?.total || 0;
+    const operationalExpenses = expensesResult[0]?.total || 0;
+    const cogs = cogsResult[0]?.total || 0;
     const totalExpenses = cogs + operationalExpenses;
-
-    // If filtering by event, opening balance might not make sense to include, or should just be 0 for 'Current Balance' calc context?
-    // For now, we will keep the calculation standard but be aware that 'currentBalance' with event filter means "Event Profit + Global Opening Balance" which might be weird.
-    // However, user just asked for "data of that particular event".
-    // Better interpretation: Current Balance usually tracks the *store's* cash. 
-    // If I filter by event, Revenue and Expenses are event specific.
-    // Opening Balance is Global.
-    // So Current Balance = Global Opening + Event Revenue - Event Expenses? No, that's partial.
-    // If filtering by event, maybe Current Balance should just be Event Profit (Revenue - Expenses).
-    // Let's stick to the formula but understand the context.
     const currentBalance = settings.openingBalance + totalRevenue - operationalExpenses;
 
-    // Recent sales for chart (last 7)
-    const recentSales = sales.slice(0, 7).reverse().map(s => ({
+    const formattedRecentSales = recentSales.reverse().map(s => ({
         name: new Date(s.timestamp).toLocaleDateString(undefined, { weekday: 'short' }),
         amount: s.totalAmount,
     }));
 
-    // Lowest stock products
-    // Products are global, but maybe we could show products sold *in this event*?
-    // User requirement: "inventory pages based on the current seleted event which shows data of that particular event"
-    // But modifying getDashboardData, let's keep products global for the "Low Stock" widget unless we want to filter it too. 
-    // Given the widget is "Low Stock Alerts", it's about what we need to buy. That's global.
-    const lowStockProducts = [...products]
-        .sort((a, b) => a.stockQuantity - b.stockQuantity)
-        .slice(0, 5)
-        .map(p => ({
-            name: p.name,
-            stock: p.stockQuantity,
-        }));
+    const formattedLowStock = lowStockProducts.map(p => ({
+        name: p.name,
+        stock: p.stockQuantity,
+    }));
 
     res.json({
         financials: {
@@ -98,10 +132,10 @@ export const getDashboardData = asyncHandler(async (req, res) => {
             totalExpenses,
             currentBalance,
         },
-        recentSales,
-        lowStockProducts,
-        salesCount: sales.length,
-        productsCount: products.length,
+        recentSales: formattedRecentSales,
+        lowStockProducts: formattedLowStock,
+        salesCount,
+        productsCount,
     });
 });
 
@@ -109,38 +143,73 @@ export const getDashboardData = asyncHandler(async (req, res) => {
 // @route   GET /api/reports/events-summary
 // @access  Private
 export const getEventsReport = asyncHandler(async (req, res) => {
-    // Global visibility: Removed user filters
-    const events = await Event.find({}).sort({ date: -1 });
-    const sales = await Sale.find({}).populate('event', 'name');
-    const expenses = await Expense.find({}).populate('event', 'name');
-    const products = await Product.find({});
+    // 1. Fetch Events
+    const events = await Event.find({}).sort({ date: -1 }).lean();
 
-    // Create product lookup for COGS calculation
-    const productMap = new Map(products.map(p => [p._id.toString(), p]));
+    // 2. Sales Aggregation (Revenue & Count per Event)
+    const salesByEvent = await Sale.aggregate([
+        {
+            $group: {
+                _id: "$event",
+                revenue: { $sum: "$totalAmount" },
+                count: { $sum: 1 }
+            }
+        }
+    ]);
 
-    // =============== EVENT SUMMARIES ===============
-    const eventSummaries = events.map(event => {
-        const eventSales = sales.filter(s => s.event?._id?.toString() === event._id.toString());
-        const eventExpenses = expenses.filter(e => e.event?._id?.toString() === event._id.toString());
+    // 3. Expenses Aggregation (Total per Event)
+    const expensesByEvent = await Expense.aggregate([
+        {
+            $group: {
+                _id: "$event",
+                total: { $sum: "$amount" },
+                count: { $sum: 1 }
+            }
+        }
+    ]);
 
-        const revenue = eventSales.reduce((sum, sale) => sum + sale.totalAmount, 0);
-        const expenseTotal = eventExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-
-        // Calculate COGS for this event
-        let cogs = 0;
-        for (const sale of eventSales) {
-            for (const item of sale.items) {
-                const product = productMap.get(item.productId.toString());
-                if (product) {
-                    cogs += product.costPrice * item.quantity;
+    // 4. COGS Aggregation per Event
+    // Unwind items, lookup product to get costPrice, calculate cost, group by event
+    const cogsByEvent = await Sale.aggregate([
+        { $unwind: "$items" },
+        {
+            $lookup: {
+                from: "products",
+                localField: "items.productId",
+                foreignField: "_id",
+                as: "productDetails"
+            }
+        },
+        { $unwind: "$productDetails" }, // Lookup returns an array
+        {
+            $group: {
+                _id: "$event", // Group by Sale's event reference
+                cogs: {
+                    $sum: { $multiply: ["$items.quantity", "$productDetails.costPrice"] }
                 }
             }
         }
+    ]);
 
+    // Create maps for easier lookup O(1)
+    const salesMap = new Map(salesByEvent.map(s => [s._id?.toString(), s]));
+    const expenseMap = new Map(expensesByEvent.map(e => [e._id?.toString(), e]));
+    const cogsMap = new Map(cogsByEvent.map(c => [c._id?.toString(), c]));
+
+    // Merge data into events
+    const eventSummaries = events.map(event => {
+        const eventId = event._id.toString();
+        const saleData = salesMap.get(eventId) || { revenue: 0, count: 0 };
+        const expenseData = expenseMap.get(eventId) || { total: 0, count: 0 };
+        const cogsData = cogsMap.get(eventId) || { cogs: 0 };
+
+        const revenue = saleData.revenue;
+        const expenseTotal = expenseData.total;
+        const cogs = cogsData.cogs;
         const profit = revenue - expenseTotal - cogs;
 
         return {
-            event: {
+            event: { // Clean event object
                 _id: event._id,
                 name: event.name,
                 date: event.date,
@@ -151,92 +220,101 @@ export const getEventsReport = asyncHandler(async (req, res) => {
             expenses: expenseTotal,
             cogs,
             profit,
-            saleCount: eventSales.length,
-            expenseCount: eventExpenses.length,
+            saleCount: saleData.count,
+            expenseCount: expenseData.count,
         };
     });
 
-    // =============== STAFF PERFORMANCE ===============
-    const staffPerformanceMap = new Map();
-
-    for (const sale of sales) {
-        const staffName = sale.soldBy || 'Unknown';
-        if (!staffPerformanceMap.has(staffName)) {
-            staffPerformanceMap.set(staffName, {
-                staffName,
-                totalSales: 0,
-                totalRevenue: 0,
-            });
+    // 5. Staff Performance (Aggregation)
+    const staffPerformance = await Sale.aggregate([
+        {
+            $group: {
+                _id: "$soldBy",
+                totalSales: { $sum: 1 },
+                totalRevenue: { $sum: "$totalAmount" }
+            }
+        },
+        { $sort: { totalRevenue: -1 } },
+        {
+            $project: {
+                staffName: "$_id",
+                totalSales: 1,
+                totalRevenue: 1,
+                averageOrderValue: {
+                    $cond: [
+                        { $gt: ["$totalSales", 0] },
+                        { $round: [{ $divide: ["$totalRevenue", "$totalSales"] }, 0] },
+                        0
+                    ]
+                },
+                _id: 0
+            }
         }
-        const staff = staffPerformanceMap.get(staffName);
-        staff.totalSales++;
-        staff.totalRevenue += sale.totalAmount;
-    }
+    ]);
 
-    const staffPerformance = Array.from(staffPerformanceMap.values())
-        .map(staff => ({
-            ...staff,
-            averageOrderValue: staff.totalSales > 0
-                ? Math.round(staff.totalRevenue / staff.totalSales)
-                : 0,
-        }))
-        .sort((a, b) => b.totalRevenue - a.totalRevenue);
-
-    // =============== EXPENSES BY CATEGORY ===============
-    const categoryMap = new Map();
-
-    for (const expense of expenses) {
-        const category = expense.category || 'General';
-        if (!categoryMap.has(category)) {
-            categoryMap.set(category, { category, total: 0, count: 0 });
+    // 6. Expenses by Category (Aggregation)
+    const expensesByCategory = await Expense.aggregate([
+        {
+            $group: {
+                _id: "$category",
+                total: { $sum: "$amount" },
+                count: { $sum: 1 }
+            }
+        },
+        { $sort: { total: -1 } },
+        {
+            $project: {
+                category: "$_id",
+                total: 1,
+                count: 1,
+                _id: 0
+            }
         }
-        const cat = categoryMap.get(category);
-        cat.total += expense.amount;
-        cat.count++;
-    }
+    ]);
 
-    const expensesByCategory = Array.from(categoryMap.values())
-        .sort((a, b) => b.total - a.total);
-
-    // =============== SALES TIMELINE ===============
-    // Group sales by date for the last 30 days
+    // 7. Sales Timeline (Last 30 Days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    // Reset time to start of day to ensure consistent grouping
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-    const salesByDate = new Map();
-
-    for (const sale of sales) {
-        const saleDate = new Date(sale.timestamp);
-        if (saleDate >= thirtyDaysAgo) {
-            const dateKey = saleDate.toISOString().split('T')[0];
-            if (!salesByDate.has(dateKey)) {
-                salesByDate.set(dateKey, 0);
+    const timelineData = await Sale.aggregate([
+        { $match: { timestamp: { $gte: thirtyDaysAgo } } },
+        {
+            $group: {
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } },
+                amount: { $sum: "$totalAmount" }
             }
-            salesByDate.set(dateKey, salesByDate.get(dateKey) + sale.totalAmount);
-        }
-    }
+        },
+        { $sort: { _id: 1 } }
+    ]);
 
-    // Generate array for last 30 days (fill missing days with 0)
+    // Fill in missing dates
     const salesTimeline = [];
+    const timelineMap = new Map(timelineData.map(t => [t._id, t.amount]));
+
     for (let i = 29; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dateKey = date.toISOString().split('T')[0];
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateKey = d.toISOString().split('T')[0];
         salesTimeline.push({
             date: dateKey,
-            amount: salesByDate.get(dateKey) || 0,
+            amount: timelineMap.get(dateKey) || 0,
         });
     }
 
-    // =============== TOTALS ===============
+    // 8. Totals (Global)
+    const [totalRevenueResult, totalExpensesResult] = await Promise.all([
+        Sale.aggregate([{ $group: { _id: null, total: { $sum: "$totalAmount" } } }]),
+        Expense.aggregate([{ $group: { _id: null, total: { $sum: "$amount" } } }])
+    ]);
+
     const totals = {
-        revenue: sales.reduce((sum, s) => sum + s.totalAmount, 0),
-        expenses: expenses.reduce((sum, e) => sum + e.amount, 0),
-        profit: 0,
+        revenue: totalRevenueResult[0]?.total || 0,
+        expenses: totalExpensesResult[0]?.total || 0,
     };
     totals.profit = totals.revenue - totals.expenses;
 
-    // =============== RESPONSE ===============
     res.json({
         events: eventSummaries,
         staffPerformance,

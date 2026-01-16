@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
     BarChart,
@@ -30,9 +30,37 @@ import type { RootState } from '@/state/store';
 import reportService from '@/state/services/reportService';
 import type { DashboardData, EventsReportData } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 // Chart colors
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+
+const DashboardSkeleton = () => (
+    <div className="space-y-6 animate-pulse">
+        <div className="flex justify-between items-center">
+            <div className="space-y-2">
+                <Skeleton className="h-8 w-64" />
+                <Skeleton className="h-4 w-48" />
+            </div>
+            <Skeleton className="h-10 w-32" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-32 rounded-xl" />
+            ))}
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-24 rounded-xl" />
+            ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Skeleton className="h-80 rounded-xl" />
+            <Skeleton className="h-80 rounded-xl" />
+        </div>
+    </div>
+);
 
 const Dashboard: React.FC = () => {
     const { settings } = useSelector((state: RootState) => state.settings);
@@ -41,11 +69,16 @@ const Dashboard: React.FC = () => {
 
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
     const [reportData, setReportData] = useState<EventsReportData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true); // Initial load
+    const [isRefreshing, setIsRefreshing] = useState(false); // Background refresh
     const [error, setError] = useState<string | null>(null);
 
-    const fetchData = async () => {
-        setIsLoading(true);
+    const fetchData = async (isBackground = false) => {
+        if (isBackground) {
+            setIsRefreshing(true);
+        } else {
+            setIsLoading(true);
+        }
         setError(null);
         try {
             const [dashData, eventsReportData] = await Promise.all([
@@ -59,27 +92,43 @@ const Dashboard: React.FC = () => {
             setError('Failed to load dashboard data. Please check your connection and try again.');
         } finally {
             setIsLoading(false);
+            setIsRefreshing(false);
         }
     };
 
     useEffect(() => {
-        fetchData();
+        // If we already have data, do a background refresh to avoid flickering
+        const hasData = dashboardData !== null;
+        fetchData(hasData);
     }, [selectedEventId]);
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-96">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="animate-spin text-indigo-600">
-                        <RefreshCw size={40} />
-                    </div>
-                    <p className="text-slate-500 font-medium">Loading dashboard...</p>
-                </div>
-            </div>
-        );
+    const financials = useMemo(() => dashboardData?.financials || {
+        openingBalance: settings?.openingBalance || 0,
+        totalRevenue: 0,
+        totalExpenses: 0,
+        currentBalance: 0,
+    }, [dashboardData, settings]);
+
+    // Get ongoing events - Safe access
+    const ongoingEvents = useMemo(() =>
+        reportData?.events?.filter(e => e.event.status === 'OPEN') || [],
+        [reportData]);
+
+    const lowStockProducts = dashboardData?.lowStockProducts || [];
+    const recentSales = dashboardData?.recentSales || [];
+
+    // Calculate profit margin
+    const profitMargin = useMemo(() => {
+        return financials.totalRevenue > 0
+            ? ((financials.totalRevenue - financials.totalExpenses) / financials.totalRevenue * 100).toFixed(1)
+            : '0';
+    }, [financials]);
+
+    if (isLoading && !dashboardData) {
+        return <DashboardSkeleton />;
     }
 
-    if (error) {
+    if (error && !dashboardData) {
         return (
             <div className="flex flex-col items-center justify-center h-96 text-center">
                 <div className="bg-red-50 p-6 rounded-full mb-4">
@@ -88,7 +137,7 @@ const Dashboard: React.FC = () => {
                 <h3 className="text-xl font-bold text-slate-800 mb-2">Something went wrong</h3>
                 <p className="text-slate-500 mb-6 max-w-md">{error}</p>
                 <button
-                    onClick={fetchData}
+                    onClick={() => fetchData(false)}
                     className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
                 >
                     <RefreshCw size={18} />
@@ -98,25 +147,8 @@ const Dashboard: React.FC = () => {
         );
     }
 
-    const financials = dashboardData?.financials || {
-        openingBalance: settings?.openingBalance || 0,
-        totalRevenue: 0,
-        totalExpenses: 0,
-        currentBalance: 0,
-    };
-
-    // Get ongoing events - Safe access
-    const ongoingEvents = reportData?.events?.filter(e => e.event.status === 'OPEN') || [];
-    const lowStockProducts = dashboardData?.lowStockProducts || [];
-    const recentSales = dashboardData?.recentSales || [];
-
-    // Calculate profit margin
-    const profitMargin = financials.totalRevenue > 0
-        ? ((financials.totalRevenue - financials.totalExpenses) / financials.totalRevenue * 100).toFixed(1)
-        : '0';
-
     return (
-        <div className="space-y-6">
+        <div className={cn("space-y-6 transition-opacity duration-200", isRefreshing && "opacity-60 pointer-events-none")}>
             {/* Header */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
@@ -130,11 +162,12 @@ const Dashboard: React.FC = () => {
                     </p>
                 </div>
                 <button
-                    onClick={fetchData}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+                    onClick={() => fetchData(true)}
+                    disabled={isRefreshing}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-70"
                 >
-                    <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
-                    Refresh Data
+                    <RefreshCw size={18} className={cn(isRefreshing && "animate-spin")} />
+                    {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
                 </button>
             </div>
 
