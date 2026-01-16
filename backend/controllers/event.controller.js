@@ -4,11 +4,12 @@ import Sale from '../models/sale.model.js';
 import Expense from '../models/expense.model.js';
 import Product from '../models/product.model.js';
 
-// @desc    Get all events for user
+// @desc    Get all events (Global)
 // @route   GET /api/events
 // @access  Private
 export const getEvents = asyncHandler(async (req, res) => {
-    const events = await Event.find({ user: req.user._id }).sort({ date: -1 });
+    // Global visibility: Removed user filter
+    const events = await Event.find({}).sort({ date: -1 });
     res.json(events);
 });
 
@@ -16,16 +17,18 @@ export const getEvents = asyncHandler(async (req, res) => {
 // @route   GET /api/events/:id/stats
 // @access  Private
 export const getEventStats = asyncHandler(async (req, res) => {
-    const event = await Event.findOne({ _id: req.params.id, user: req.user._id });
+    // Global visibility: Show stats for any event
+    const event = await Event.findOne({ _id: req.params.id });
 
     if (!event) {
         res.status(404);
         throw new Error('Event not found');
     }
 
-    const eventSales = await Sale.find({ event: req.params.id, user: req.user._id });
-    const eventExpenses = await Expense.find({ event: req.params.id, user: req.user._id });
-    const products = await Product.find({ user: req.user._id });
+    // Aggregate global sales/expenses for this event
+    const eventSales = await Sale.find({ event: req.params.id });
+    const eventExpenses = await Expense.find({ event: req.params.id });
+    const products = await Product.find({}); // Global products for COGS
 
     const revenue = eventSales.reduce((sum, sale) => sum + sale.totalAmount, 0);
     const expenses = eventExpenses.reduce((sum, exp) => sum + exp.amount, 0);

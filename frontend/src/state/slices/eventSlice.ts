@@ -4,12 +4,14 @@ import eventService from '../services/eventService';
 
 interface EventState {
     events: Event[];
+    selectedEventId: string | null;
     isLoading: boolean;
     error: string | null;
 }
 
 const initialState: EventState = {
     events: [],
+    selectedEventId: localStorage.getItem('selectedEventId'),
     isLoading: false,
     error: null,
 };
@@ -63,6 +65,14 @@ const eventSlice = createSlice({
         clearError: (state) => {
             state.error = null;
         },
+        setSelectedEvent: (state, action: PayloadAction<string | null>) => {
+            state.selectedEventId = action.payload;
+            if (action.payload) {
+                localStorage.setItem('selectedEventId', action.payload);
+            } else {
+                localStorage.removeItem('selectedEventId');
+            }
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -93,9 +103,13 @@ const eventSlice = createSlice({
             // Delete Event
             .addCase(deleteEvent.fulfilled, (state, action: PayloadAction<string>) => {
                 state.events = state.events.filter(e => e._id !== action.payload);
+                if (state.selectedEventId === action.payload) {
+                    state.selectedEventId = null;
+                    localStorage.removeItem('selectedEventId');
+                }
             });
     },
 });
 
-export const { clearError } = eventSlice.actions;
+export const { clearError, setSelectedEvent } = eventSlice.actions;
 export default eventSlice.reducer;

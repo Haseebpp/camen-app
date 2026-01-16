@@ -41,17 +41,35 @@ export const getFinancials = asyncHandler(async (req, res) => {
 // @desc    Get dashboard data
 // @route   GET /api/reports/dashboard
 // @access  Private
+// @access  Private
 export const getDashboardData = asyncHandler(async (req, res) => {
     // Global visibility: Removed user filters
+    // Check for optional eventId filter
+    const { eventId } = req.query;
+    const filter = {};
+    if (eventId) {
+        filter.event = eventId;
+    }
+
     const settings = await Settings.findOne({}) || { openingBalance: 0 };
-    const sales = await Sale.find({}).sort({ timestamp: -1 });
+    const sales = await Sale.find(filter).sort({ timestamp: -1 });
     const products = await Product.find({});
-    const expenses = await Expense.find({});
+    const expenses = await Expense.find(filter);
 
     const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
     const cogs = products.reduce((sum, product) => sum + (product.costPrice * product.soldQuantity), 0);
     const operationalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
     const totalExpenses = cogs + operationalExpenses;
+
+    // If filtering by event, opening balance might not make sense to include, or should just be 0 for 'Current Balance' calc context?
+    // For now, we will keep the calculation standard but be aware that 'currentBalance' with event filter means "Event Profit + Global Opening Balance" which might be weird.
+    // However, user just asked for "data of that particular event".
+    // Better interpretation: Current Balance usually tracks the *store's* cash. 
+    // If I filter by event, Revenue and Expenses are event specific.
+    // Opening Balance is Global.
+    // So Current Balance = Global Opening + Event Revenue - Event Expenses? No, that's partial.
+    // If filtering by event, maybe Current Balance should just be Event Profit (Revenue - Expenses).
+    // Let's stick to the formula but understand the context.
     const currentBalance = settings.openingBalance + totalRevenue - operationalExpenses;
 
     // Recent sales for chart (last 7)
@@ -61,6 +79,10 @@ export const getDashboardData = asyncHandler(async (req, res) => {
     }));
 
     // Lowest stock products
+    // Products are global, but maybe we could show products sold *in this event*?
+    // User requirement: "inventory pages based on the current seleted event which shows data of that particular event"
+    // But modifying getDashboardData, let's keep products global for the "Low Stock" widget unless we want to filter it too. 
+    // Given the widget is "Low Stock Alerts", it's about what we need to buy. That's global.
     const lowStockProducts = [...products]
         .sort((a, b) => a.stockQuantity - b.stockQuantity)
         .slice(0, 5)

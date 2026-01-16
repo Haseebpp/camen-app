@@ -36,6 +36,9 @@ const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'
 
 const Dashboard: React.FC = () => {
     const { settings } = useSelector((state: RootState) => state.settings);
+    const { events, selectedEventId } = useSelector((state: RootState) => state.events);
+    const selectedEvent = events.find(e => e._id === selectedEventId);
+
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
     const [reportData, setReportData] = useState<EventsReportData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -46,7 +49,7 @@ const Dashboard: React.FC = () => {
         setError(null);
         try {
             const [dashData, eventsReportData] = await Promise.all([
-                reportService.getDashboardData(),
+                reportService.getDashboardData(selectedEventId || undefined),
                 reportService.getEventsReport(),
             ]);
             setDashboardData(dashData);
@@ -61,7 +64,7 @@ const Dashboard: React.FC = () => {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [selectedEventId]);
 
     if (isLoading) {
         return (
@@ -117,8 +120,14 @@ const Dashboard: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
-                    <h2 className="text-3xl font-bold text-slate-800">Dashboard</h2>
-                    <p className="text-slate-500">Quick overview of your business performance</p>
+                    <h2 className="text-3xl font-bold text-slate-800">
+                        {selectedEvent ? `Dashboard - ${selectedEvent.name}` : 'Dashboard'}
+                    </h2>
+                    <p className="text-slate-500">
+                        {selectedEvent
+                            ? `Showing data specific to ${selectedEvent.name}`
+                            : 'Quick overview of your business performance'}
+                    </p>
                 </div>
                 <button
                     onClick={fetchData}

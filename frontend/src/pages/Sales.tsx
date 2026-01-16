@@ -5,7 +5,6 @@ import {
     Trash2,
     Check,
     LayoutGrid,
-    Calendar,
     Sparkles,
     History,
 } from 'lucide-react';
@@ -20,7 +19,7 @@ import { PRESET_COMBOS } from '@/lib/constants';
 const Sales: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { products, error: productError } = useSelector((state: RootState) => state.products);
-    const { events, error: eventError } = useSelector((state: RootState) => state.events);
+    const { events, error: eventError, selectedEventId } = useSelector((state: RootState) => state.events);
     const { sales, isLoading: saleLoading, error: saleError } = useSelector((state: RootState) => state.sales);
 
     const error = productError || eventError || saleError;
@@ -28,13 +27,14 @@ const Sales: React.FC = () => {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [saleType, setSaleType] = useState<SaleType>('INDIVIDUAL');
     const [comboName, setComboName] = useState('');
-    const [selectedEventId, setSelectedEventId] = useState('');
     const [activeTab, setActiveTab] = useState<'products' | 'checkout' | 'history'>('products');
 
     const openEvents = events.filter((e) => e.status === 'OPEN');
 
     useEffect(() => {
         dispatch(fetchProducts());
+        // fetchEvents is now called in App.tsx, but keeping it here doesn't hurt, or we can remove it. 
+        // Best to leave it to ensure data is fresh if this page is loaded directly/refreshed.
         dispatch(fetchEvents());
         dispatch(fetchSales());
     }, [dispatch]);
@@ -159,7 +159,7 @@ const Sales: React.FC = () => {
             {/* Product Selection Area */}
             <div className={`flex-1 flex flex-col ${activeTab !== 'products' ? 'hidden md:flex' : 'flex'} ${activeTab === 'history' ? 'md:hidden' : ''}`}>
                 <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h2 className="text-2xl font-bold text-slate-800">Select Products</h2>
+                    <h2 className="text-2xl font-bold text-slate-800">Add Products</h2>
                     <div className="flex gap-2 bg-white p-1 rounded-lg border border-slate-200">
                         <button
                             onClick={() => setSaleType('INDIVIDUAL')}
@@ -178,23 +178,7 @@ const Sales: React.FC = () => {
                     </div>
                 </div>
 
-                {openEvents.length > 0 && (
-                    <div className="mb-4 flex items-center gap-2 bg-yellow-50 p-2 rounded-lg border border-yellow-100">
-                        <Calendar size={18} className="text-yellow-600" />
-                        <select
-                            value={selectedEventId}
-                            onChange={(e) => setSelectedEventId(e.target.value)}
-                            className="bg-transparent text-sm font-medium text-slate-700 focus:outline-none w-full cursor-pointer"
-                        >
-                            <option value="">-- No Specific Event (General Sale) --</option>
-                            {openEvents.map((e) => (
-                                <option key={e._id} value={e._id}>
-                                    {e.name} ({new Date(e.date).toLocaleDateString()})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
+                {/* Event selection moved to Sidebar */}
 
                 {saleType === 'COMBO' && (
                     <div className="mb-6 space-y-4">
@@ -285,11 +269,9 @@ const Sales: React.FC = () => {
                     <p className="text-sm text-slate-500 mt-1">
                         {saleType === 'COMBO' ? 'Combo Offer Sale' : 'Standard Sale'}
                     </p>
-                    {selectedEventId && (
-                        <div className="mt-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded inline-block font-medium">
-                            Tag: {openEvents.find((e) => e._id === selectedEventId)?.name}
-                        </div>
-                    )}
+                    <div className={`mt-2 text-xs px-2 py-1 rounded inline-block font-medium ${selectedEventId ? 'bg-yellow-100 text-yellow-800' : 'bg-slate-100 text-slate-600'}`}>
+                        Event: {selectedEventId ? openEvents.find((e) => e._id === selectedEventId)?.name : 'General'}
+                    </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -374,7 +356,7 @@ const Sales: React.FC = () => {
                 <div className="p-6 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
                     <div className="flex items-center justify-between mb-2">
                         <h2 className="text-xl font-bold flex items-center gap-2">
-                            <History className="text-indigo-600" /> My History
+                            <History className="text-indigo-600" /> History
                         </h2>
                         <div className="text-xs font-semibold bg-indigo-100 text-indigo-700 px-2 py-1 rounded">
                             {sales.length} Sales

@@ -12,7 +12,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 const Expenses: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { expenses, isLoading, error } = useSelector((state: RootState) => state.expenses);
-    const { events } = useSelector((state: RootState) => state.events);
+    const { events, selectedEventId } = useSelector((state: RootState) => state.events);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -21,10 +21,9 @@ const Expenses: React.FC = () => {
         category: '',
         amount: 0,
         date: new Date().toISOString().split('T')[0],
-        eventId: '',
     });
 
-    const openEvents = events.filter((e) => e.status === 'OPEN');
+    const selectedEvent = events.find(e => e._id === selectedEventId);
 
     useEffect(() => {
         dispatch(fetchExpenses());
@@ -39,7 +38,7 @@ const Expenses: React.FC = () => {
                 category: formData.category || 'General',
                 amount: Number(formData.amount),
                 date: new Date(formData.date).getTime(),
-                eventId: formData.eventId || undefined,
+                eventId: selectedEventId || undefined,
             })
         );
         closeModal();
@@ -58,7 +57,6 @@ const Expenses: React.FC = () => {
             category: '',
             amount: 0,
             date: new Date().toISOString().split('T')[0],
-            eventId: '',
         });
     };
 
@@ -76,6 +74,14 @@ const Expenses: React.FC = () => {
                     <Plus size={18} /> Add Expense
                 </Button>
             </div>
+
+            {/* Context Indicator */}
+            {selectedEvent && (
+                <div className="bg-yellow-50 text-yellow-800 px-4 py-2 rounded-lg text-sm flex items-center gap-2 border border-yellow-100">
+                    <Calendar size={16} />
+                    <span>Adding expenses for: <strong>{selectedEvent.name}</strong></span>
+                </div>
+            )}
 
             <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
@@ -180,6 +186,11 @@ const Expenses: React.FC = () => {
 
             <Modal isOpen={isModalOpen} onClose={closeModal} title="Add New Expense">
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {selectedEvent && (
+                        <div className="bg-yellow-50 text-yellow-800 px-4 py-2 rounded-lg text-sm mb-4 border border-yellow-100">
+                            <strong>Note:</strong> This expense will be linked to valid active event: <strong>{selectedEvent.name}</strong>
+                        </div>
+                    )}
                     <Input
                         label="Description"
                         placeholder="e.g., Office Rent, Electricity Bill"
@@ -204,24 +215,6 @@ const Expenses: React.FC = () => {
                             required
                         />
                     </div>
-
-                    {openEvents.length > 0 && (
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Link to Event (Optional)</label>
-                            <select
-                                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
-                                value={formData.eventId}
-                                onChange={(e) => setFormData({ ...formData, eventId: e.target.value })}
-                            >
-                                <option value="">-- No Specific Event --</option>
-                                {openEvents.map((e) => (
-                                    <option key={e._id} value={e._id}>
-                                        {e.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
 
                     <Input
                         label="Amount (SAR)"
