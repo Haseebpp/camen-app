@@ -5,7 +5,6 @@ import {
     Trash2,
     Check,
     LayoutGrid,
-    Calendar,
     Sparkles,
     History,
 } from 'lucide-react';
@@ -20,7 +19,7 @@ import { PRESET_COMBOS } from '@/lib/constants';
 const Sales: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { products, error: productError } = useSelector((state: RootState) => state.products);
-    const { events, error: eventError } = useSelector((state: RootState) => state.events);
+    const { events, error: eventError, selectedEventId } = useSelector((state: RootState) => state.events);
     const { sales, isLoading: saleLoading, error: saleError } = useSelector((state: RootState) => state.sales);
 
     const error = productError || eventError || saleError;
@@ -28,13 +27,14 @@ const Sales: React.FC = () => {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [saleType, setSaleType] = useState<SaleType>('INDIVIDUAL');
     const [comboName, setComboName] = useState('');
-    const [selectedEventId, setSelectedEventId] = useState('');
     const [activeTab, setActiveTab] = useState<'products' | 'checkout' | 'history'>('products');
 
     const openEvents = events.filter((e) => e.status === 'OPEN');
 
     useEffect(() => {
         dispatch(fetchProducts());
+        // fetchEvents is now called in App.tsx, but keeping it here doesn't hurt, or we can remove it. 
+        // Best to leave it to ensure data is fresh if this page is loaded directly/refreshed.
         dispatch(fetchEvents());
         dispatch(fetchSales());
     }, [dispatch]);
@@ -178,23 +178,7 @@ const Sales: React.FC = () => {
                     </div>
                 </div>
 
-                {openEvents.length > 0 && (
-                    <div className="mb-4 flex items-center gap-2 bg-yellow-50 p-2 rounded-lg border border-yellow-100">
-                        <Calendar size={18} className="text-yellow-600" />
-                        <select
-                            value={selectedEventId}
-                            onChange={(e) => setSelectedEventId(e.target.value)}
-                            className="bg-transparent text-sm font-medium text-slate-700 focus:outline-none w-full cursor-pointer"
-                        >
-                            <option value="">-- No Specific Event (General Sale) --</option>
-                            {openEvents.map((e) => (
-                                <option key={e._id} value={e._id}>
-                                    {e.name} ({new Date(e.date).toLocaleDateString()})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
+                {/* Event selection moved to Sidebar */}
 
                 {saleType === 'COMBO' && (
                     <div className="mb-6 space-y-4">

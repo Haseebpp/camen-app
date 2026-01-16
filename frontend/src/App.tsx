@@ -6,6 +6,7 @@ import { getProfile } from './state/slices/authSlice';
 import { fetchSettings } from './state/slices/settingsSlice';
 import { fetchProducts } from './state/slices/productSlice';
 import { fetchSales } from './state/slices/saleSlice';
+import { fetchEvents } from './state/slices/eventSlice';
 
 // Site components
 import Layout from './components/site/Layout';
@@ -39,6 +40,7 @@ const App: React.FC = () => {
             dispatch(fetchSettings());
             dispatch(fetchProducts());
             dispatch(fetchSales());
+            dispatch(fetchEvents());
         }
     }, [dispatch, isAuthenticated]);
 

@@ -13,6 +13,8 @@ import { LOGO_URL } from '@/lib/constants';
 const Inventory: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { products, isLoading, error } = useSelector((state: RootState) => state.products);
+    const { events, selectedEventId } = useSelector((state: RootState) => state.events);
+    const selectedEvent = events.find(e => e._id === selectedEventId);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -32,6 +34,7 @@ const Inventory: React.FC = () => {
     }, [dispatch]);
 
     const handleSubmit = async (e: React.FormEvent) => {
+        // ... existing submit logic ...
         e.preventDefault();
         if (editingId) {
             await dispatch(updateProduct({ id: editingId, updates: formData }));
@@ -82,7 +85,9 @@ const Inventory: React.FC = () => {
     return (
         <div className="space-y-6">
             <div className="relative flex flex-col sm:flex-row justify-between items-center gap-4 min-h-[60px]">
-                <h2 className="text-3xl font-bold text-slate-800">Inventory</h2>
+                <h2 className="text-3xl font-bold text-slate-800">
+                    {selectedEvent ? `Inventory - ${selectedEvent.name}` : 'Inventory'}
+                </h2>
 
                 <div className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                     <img src={LOGO_URL} alt="CAMEN" className="h-16 w-auto object-contain" />

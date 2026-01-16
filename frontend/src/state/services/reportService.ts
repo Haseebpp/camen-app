@@ -7,8 +7,9 @@ const reportService = {
         return response.data;
     },
 
-    async getDashboardData(): Promise<DashboardData> {
-        const response = await axios.get('/reports/dashboard');
+    async getDashboardData(eventId?: string): Promise<DashboardData> {
+        const url = eventId ? `/reports/dashboard?eventId=${eventId}` : '/reports/dashboard';
+        const response = await axios.get(url);
         return response.data;
     },
 
