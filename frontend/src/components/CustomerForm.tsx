@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { User, Phone, MapPin, Tablet } from 'lucide-react';
 import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
+
 import { Label } from './ui/label';
 
 export interface CustomerDetails {
