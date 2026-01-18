@@ -13,7 +13,7 @@ export interface AdminProduct {
     itemCode: string;
     name: string;
     category: string;
-    costPrice: number;
+    costPrice?: number; // Hidden from UI, kept in backend for future use
     sellingPrice: number;
     stockQuantity: number;
     soldQuantity: number;

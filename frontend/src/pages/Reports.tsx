@@ -488,9 +488,7 @@ const Reports: React.FC = () => {
             'Item Code': p.itemCode,
             'Product Name': p.name,
             'Category': p.category,
-            'Cost Price (SAR)': p.costPrice,
             'Selling Price (SAR)': p.sellingPrice,
-            'Profit per Unit (SAR)': p.sellingPrice - p.costPrice,
             'Current Stock': p.stockQuantity,
             'Initial Stock': p.initialStock,
             'Quantity Sold': p.soldQuantity,
@@ -499,8 +497,8 @@ const Reports: React.FC = () => {
         }));
         const wsProducts = XLSX.utils.json_to_sheet(inventoryData);
         wsProducts['!cols'] = [
-            { wch: 5 }, { wch: 12 }, { wch: 25 }, { wch: 15 }, { wch: 16 },
-            { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
+            { wch: 5 }, { wch: 12 }, { wch: 25 }, { wch: 15 },
+            { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
             { wch: 12 }, { wch: 20 }
         ];
         XLSX.utils.book_append_sheet(wb, wsProducts, 'Inventory');

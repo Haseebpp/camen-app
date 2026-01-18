@@ -23,7 +23,6 @@ const Inventory: React.FC = () => {
         itemCode: '',
         name: '',
         category: '',
-        costPrice: 0,
         sellingPrice: 0,
         stockQuantity: 0,
         description: '',
@@ -44,7 +43,7 @@ const Inventory: React.FC = () => {
                     itemCode: formData.itemCode || '',
                     name: formData.name || '',
                     category: formData.category || 'General',
-                    costPrice: Number(formData.costPrice),
+                    costPrice: 0, // Hidden from UI, using default value
                     sellingPrice: Number(formData.sellingPrice),
                     stockQuantity: Number(formData.stockQuantity),
                     initialStock: Number(formData.stockQuantity),
@@ -68,7 +67,6 @@ const Inventory: React.FC = () => {
             itemCode: '',
             name: '',
             category: '',
-            costPrice: 0,
             sellingPrice: 0,
             stockQuantity: 0,
             description: '',
@@ -122,7 +120,6 @@ const Inventory: React.FC = () => {
                             <TableHead>Code</TableHead>
                             <TableHead>Product</TableHead>
                             <TableHead>Category</TableHead>
-                            <TableHead className="text-right">Cost (SAR)</TableHead>
                             <TableHead className="text-right">Price (SAR)</TableHead>
                             <TableHead className="text-center">Stock</TableHead>
                             <TableHead className="text-center">Sold</TableHead>
@@ -132,13 +129,13 @@ const Inventory: React.FC = () => {
                     <TableBody>
                         {isLoading ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="text-center py-8">
+                                <TableCell colSpan={7} className="text-center py-8">
                                     Loading...
                                 </TableCell>
                             </TableRow>
                         ) : filteredProducts.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="text-center py-8 text-slate-500">
+                                <TableCell colSpan={7} className="text-center py-8 text-slate-500">
                                     No products found. Add some inventory!
                                 </TableCell>
                             </TableRow>
@@ -160,7 +157,6 @@ const Inventory: React.FC = () => {
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-slate-600">{product.category}</TableCell>
-                                    <TableCell className="text-right text-slate-600">SAR {product.costPrice}</TableCell>
                                     <TableCell className="text-right font-medium text-slate-900">
                                         SAR {product.sellingPrice}
                                     </TableCell>
@@ -220,15 +216,7 @@ const Inventory: React.FC = () => {
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         />
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
-                        <Input
-                            label="Cost (SAR)"
-                            type="number"
-                            min="0"
-                            value={formData.costPrice}
-                            onChange={(e) => setFormData({ ...formData, costPrice: Number(e.target.value) })}
-                            required
-                        />
+                    <div className="grid grid-cols-2 gap-4">
                         <Input
                             label="Price (SAR)"
                             type="number"

@@ -12,7 +12,7 @@ export interface Product {
     itemCode: string;
     name: string;
     description: string;
-    costPrice: number;
+    costPrice?: number; // Hidden from UI, kept in backend for future use
     sellingPrice: number;
     stockQuantity: number;
     initialStock: number;
