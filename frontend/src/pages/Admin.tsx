@@ -46,9 +46,11 @@ const Admin: React.FC = () => {
     // Modal states
     const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
     const [editingEvent, setEditingEvent] = useState<AdminEvent | null>(null);
     const [editingSale, setEditingSale] = useState<AdminSale | null>(null);
     const [editingExpense, setEditingExpense] = useState<AdminExpense | null>(null);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [eventFormData, setEventFormData] = useState({
         name: '',
         date: new Date().toISOString().split('T')[0],
@@ -62,6 +64,7 @@ const Admin: React.FC = () => {
 
     useEffect(() => {
         loadData();
+        setSelectedIds([]);
     }, [activeTab]);
 
     const loadData = async () => {
@@ -101,6 +104,48 @@ const Admin: React.FC = () => {
         }
     };
 
+    // Selection Helpers
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>, items: any[]) => {
+        if (e.target.checked) {
+            setSelectedIds(items.map((i) => i._id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleSelectRow = (id: string) => {
+        if (selectedIds.includes(id)) {
+            setSelectedIds(selectedIds.filter((i) => i !== id));
+        } else {
+            setSelectedIds([...selectedIds, id]);
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (!confirm(`Are you sure you want to delete ${selectedIds.length} items?`)) return;
+        try {
+            if (activeTab === 'users') {
+                await Promise.all(selectedIds.map((id) => adminService.deleteUser(id)));
+                setUsers(users.filter((u) => !selectedIds.includes(u._id)));
+            } else if (activeTab === 'products') {
+                await Promise.all(selectedIds.map((id) => adminService.deleteProduct(id)));
+                setProducts(products.filter((p) => !selectedIds.includes(p._id)));
+            } else if (activeTab === 'sales') {
+                await Promise.all(selectedIds.map((id) => adminService.deleteSale(id)));
+                setSales(sales.filter((s) => !selectedIds.includes(s._id)));
+            } else if (activeTab === 'expenses') {
+                await Promise.all(selectedIds.map((id) => adminService.deleteExpense(id)));
+                setExpenses(expenses.filter((e) => !selectedIds.includes(e._id)));
+            } else if (activeTab === 'events') {
+                await Promise.all(selectedIds.map((id) => adminService.deleteEvent(id)));
+                setEvents(events.filter((e) => !selectedIds.includes(e._id)));
+            }
+            setSelectedIds([]);
+        } catch (err) {
+            alert((err as Error).message);
+        }
+    };
+
     const handleUpdateUser = async () => {
         if (!editingUser) return;
         try {
@@ -121,6 +166,33 @@ const Admin: React.FC = () => {
         try {
             await adminService.deleteUser(id);
             setUsers(users.filter((u) => u._id !== id));
+        } catch (err) {
+            alert((err as Error).message);
+        }
+    };
+
+    const handleUpdateProduct = async () => {
+        if (!editingProduct) return;
+        try {
+            const updated = await adminService.updateProduct(editingProduct._id, {
+                name: editingProduct.name,
+                itemCode: editingProduct.itemCode,
+                category: editingProduct.category,
+                sellingPrice: editingProduct.sellingPrice,
+                stockQuantity: editingProduct.stockQuantity,
+            });
+            setProducts(products.map((p) => (p._id === updated._id ? updated : p)));
+            setEditingProduct(null);
+        } catch (err) {
+            alert((err as Error).message);
+        }
+    };
+
+    const handleDeleteProduct = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this product?')) return;
+        try {
+            await adminService.deleteProduct(id);
+            setProducts(products.filter((p) => p._id !== id));
         } catch (err) {
             alert((err as Error).message);
         }
@@ -267,6 +339,14 @@ const Admin: React.FC = () => {
                 </div>
             ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                    {selectedIds.length > 0 && (
+                        <div className="bg-red-50 border border-red-200 p-3 rounded-lg flex items-center justify-between mb-4">
+                            <span className="text-red-700 font-medium">{selectedIds.length} items selected</span>
+                            <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
+                                <Trash2 size={16} className="mr-2" /> Delete Selected
+                            </Button>
+                        </div>
+                    )}
                     {/* Overview Tab */}
                     {activeTab === 'overview' && stats && (
                         <div className="space-y-6">
@@ -322,6 +402,14 @@ const Admin: React.FC = () => {
                                         <TableHead>Role</TableHead>
                                         <TableHead>Joined</TableHead>
                                         <TableHead>Actions</TableHead>
+                                        <TableHead className="w-12">
+                                            <input
+                                                type="checkbox"
+                                                onChange={(e) => handleSelectAll(e, users)}
+                                                checked={users.length > 0 && selectedIds.length === users.length}
+                                                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -345,6 +433,14 @@ const Admin: React.FC = () => {
                                                     </button>
                                                 </div>
                                             </TableCell>
+                                            <TableCell>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(u._id)}
+                                                    onChange={() => handleSelectRow(u._id)}
+                                                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -365,6 +461,15 @@ const Admin: React.FC = () => {
                                         <TableHead>Price</TableHead>
                                         <TableHead>Stock</TableHead>
                                         <TableHead>Owner</TableHead>
+                                        <TableHead>Actions</TableHead>
+                                        <TableHead className="w-12">
+                                            <input
+                                                type="checkbox"
+                                                onChange={(e) => handleSelectAll(e, products)}
+                                                checked={products.length > 0 && selectedIds.length === products.length}
+                                                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -380,6 +485,24 @@ const Admin: React.FC = () => {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-sm text-slate-500">{p.user?.name || 'N/A'}</TableCell>
+                                            <TableCell>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => setEditingProduct(p)} className="text-slate-400 hover:text-indigo-600">
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleDeleteProduct(p._id)} className="text-slate-400 hover:text-red-600">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(p._id)}
+                                                    onChange={() => handleSelectRow(p._id)}
+                                                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -400,6 +523,14 @@ const Admin: React.FC = () => {
                                         <TableHead>Sold By</TableHead>
                                         <TableHead>Event</TableHead>
                                         <TableHead>Actions</TableHead>
+                                        <TableHead className="w-12">
+                                            <input
+                                                type="checkbox"
+                                                onChange={(e) => handleSelectAll(e, sales)}
+                                                checked={sales.length > 0 && selectedIds.length === sales.length}
+                                                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -422,6 +553,14 @@ const Admin: React.FC = () => {
                                                     </button>
                                                 </div>
                                             </TableCell>
+                                            <TableCell>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(s._id)}
+                                                    onChange={() => handleSelectRow(s._id)}
+                                                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -443,6 +582,14 @@ const Admin: React.FC = () => {
                                         <TableHead>User</TableHead>
                                         <TableHead>Event</TableHead>
                                         <TableHead>Actions</TableHead>
+                                        <TableHead className="w-12">
+                                            <input
+                                                type="checkbox"
+                                                onChange={(e) => handleSelectAll(e, expenses)}
+                                                checked={expenses.length > 0 && selectedIds.length === expenses.length}
+                                                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -463,6 +610,14 @@ const Admin: React.FC = () => {
                                                         <Trash2 size={16} />
                                                     </button>
                                                 </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(e._id)}
+                                                    onChange={() => handleSelectRow(e._id)}
+                                                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                                                />
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -489,6 +644,14 @@ const Admin: React.FC = () => {
                                         <TableHead>Status</TableHead>
                                         <TableHead>Owner</TableHead>
                                         <TableHead>Actions</TableHead>
+                                        <TableHead className="w-12">
+                                            <input
+                                                type="checkbox"
+                                                onChange={(e) => handleSelectAll(e, events)}
+                                                checked={events.length > 0 && selectedIds.length === events.length}
+                                                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -510,6 +673,14 @@ const Admin: React.FC = () => {
                                                         <Trash2 size={16} />
                                                     </button>
                                                 </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(e._id)}
+                                                    onChange={() => handleSelectRow(e._id)}
+                                                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                                                />
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -627,6 +798,49 @@ const Admin: React.FC = () => {
                                 Cancel
                             </Button>
                             <Button onClick={handleUpdateEvent}>
+                                <Save size={16} /> Save Changes
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
+
+            {/* Edit Product Modal */}
+            {editingProduct && (
+                <Modal isOpen={true} onClose={() => setEditingProduct(null)} title="Edit Product">
+                    <div className="space-y-4">
+                        <Input
+                            label="Name"
+                            value={editingProduct.name}
+                            onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                        />
+                        <Input
+                            label="Item Code"
+                            value={editingProduct.itemCode}
+                            onChange={(e) => setEditingProduct({ ...editingProduct, itemCode: e.target.value })}
+                        />
+                        <Input
+                            label="Category"
+                            value={editingProduct.category}
+                            onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                        />
+                        <Input
+                            label="Selling Price"
+                            type="number"
+                            value={editingProduct.sellingPrice.toString()}
+                            onChange={(e) => setEditingProduct({ ...editingProduct, sellingPrice: parseFloat(e.target.value) || 0 })}
+                        />
+                        <Input
+                            label="Stock Quantity"
+                            type="number"
+                            value={editingProduct.stockQuantity.toString()}
+                            onChange={(e) => setEditingProduct({ ...editingProduct, stockQuantity: parseInt(e.target.value) || 0 })}
+                        />
+                        <div className="flex justify-end gap-3 mt-6">
+                            <Button variant="ghost" onClick={() => setEditingProduct(null)}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleUpdateProduct}>
                                 <Save size={16} /> Save Changes
                             </Button>
                         </div>

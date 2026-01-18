@@ -15,6 +15,7 @@ import { fetchEvents } from '@/state/slices/eventSlice';
 import { createSale, fetchSales } from '@/state/slices/saleSlice';
 import { Button } from '@/components/ui/button';
 import { PRESET_COMBOS } from '@/lib/constants';
+import { CustomerForm, type CustomerDetails } from '@/components/CustomerForm';
 
 const Sales: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -28,6 +29,12 @@ const Sales: React.FC = () => {
     const [saleType, setSaleType] = useState<SaleType>('INDIVIDUAL');
     const [comboName, setComboName] = useState('');
     const [activeTab, setActiveTab] = useState<'products' | 'checkout' | 'history'>('products');
+    const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
+        name: '',
+        phone: '',
+        location: '',
+        notes: '',
+    });
 
     const openEvents = events.filter((e) => e.status === 'OPEN');
 
@@ -131,6 +138,7 @@ const Sales: React.FC = () => {
                     type: saleType,
                     comboName: saleType === 'COMBO' ? comboName : undefined,
                     eventId: selectedEventId || undefined,
+                    customerDetails: customerDetails.phone ? customerDetails : undefined,
                 })
             ).unwrap();
 
@@ -140,6 +148,7 @@ const Sales: React.FC = () => {
             setCart([]);
             setComboName('');
             setSaleType('INDIVIDUAL');
+            setCustomerDetails({ name: '', phone: '', location: '', notes: '' });
             setActiveTab('products');
             alert('Sale recorded successfully!');
         } catch (error) {
@@ -158,6 +167,10 @@ const Sales: React.FC = () => {
             )}
             {/* Product Selection Area */}
             <div className={`flex-1 flex flex-col ${activeTab !== 'products' ? 'hidden md:flex' : 'flex'} ${activeTab === 'history' ? 'md:hidden' : ''}`}>
+
+                {/* Customer Form */}
+                <CustomerForm value={customerDetails} onChange={setCustomerDetails} />
+
                 <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <h2 className="text-2xl font-bold text-slate-800">Add Products</h2>
                     <div className="flex gap-2 bg-white p-1 rounded-lg border border-slate-200">

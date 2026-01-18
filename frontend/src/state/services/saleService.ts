@@ -17,9 +17,19 @@ const saleService = {
         type: SaleType;
         comboName?: string;
         eventId?: string;
+        customerDetails?: {
+            name: string;
+            phone: string;
+            location: string;
+            notes: string;
+        };
     }): Promise<Sale> {
         const response = await axios.post('/sales', saleData);
         return response.data;
+    },
+
+    async deleteSale(id: string): Promise<void> {
+        await axios.delete(`/sales/${id}`);
     },
 };
 

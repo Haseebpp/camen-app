@@ -60,6 +60,11 @@ const saleSchema = new mongoose.Schema(
             ref: 'Event',
             default: null,
         },
+        customer: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Customer',
+            default: null,
+        },
     },
     {
         timestamps: true,

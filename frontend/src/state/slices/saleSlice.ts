@@ -25,7 +25,18 @@ export const fetchSales = createAsyncThunk('sales/fetchAll', async (_, { rejectW
 export const createSale = createAsyncThunk(
     'sales/create',
     async (
-        saleData: { items: CartItem[]; type: SaleType; comboName?: string; eventId?: string },
+        saleData: {
+            items: CartItem[];
+            type: SaleType;
+            comboName?: string;
+            eventId?: string;
+            customerDetails?: {
+                name: string;
+                phone: string;
+                location: string;
+                notes: string;
+            }
+        },
         { rejectWithValue }
     ) => {
         try {

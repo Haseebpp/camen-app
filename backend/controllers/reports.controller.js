@@ -55,88 +55,97 @@ export const getFinancials = asyncHandler(async (req, res) => {
 // @route   GET /api/reports/dashboard
 // @access  Private
 export const getDashboardData = asyncHandler(async (req, res) => {
-    const { eventId } = req.query;
-    const matchFilter = {};
-    if (eventId) {
-        matchFilter.event = new mongoose.Types.ObjectId(eventId);
-    }
+    console.log('[DASHBOARD] Fetching data...');
+    try {
+        const { eventId } = req.query;
+        const matchFilter = {};
+        if (eventId) {
+            matchFilter.event = new mongoose.Types.ObjectId(eventId);
+        }
 
-    const settings = await Settings.findOne({}).lean() || { openingBalance: 0 };
+        const settings = await Settings.findOne({}).lean() || { openingBalance: 0 };
 
-    // Parallelize independent queries for better performance
-    const [
-        revenueResult,
-        expensesResult,
-        cogsResult,
-        salesCount,
-        productsCount,
-        recentSales,
-        lowStockProducts
-    ] = await Promise.all([
-        // 1. Revenue
-        Sale.aggregate([
-            { $match: matchFilter },
-            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
-        ]),
-        // 2. Expenses
-        Expense.aggregate([
-            { $match: matchFilter },
-            { $group: { _id: null, total: { $sum: "$amount" } } }
-        ]),
-        // 3. COGS (Global for now, as per original logic)
-        Product.aggregate([
-            {
-                $group: {
-                    _id: null,
-                    total: { $sum: { $multiply: ["$costPrice", "$soldQuantity"] } }
+        // Parallelize independent queries for better performance
+        const [
+            revenueResult,
+            expensesResult,
+            cogsResult,
+            salesCount,
+            productsCount,
+            recentSales,
+            lowStockProducts
+        ] = await Promise.all([
+            // 1. Revenue
+            Sale.aggregate([
+                { $match: matchFilter },
+                { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+            ]),
+            // 2. Expenses
+            Expense.aggregate([
+                { $match: matchFilter },
+                { $group: { _id: null, total: { $sum: "$amount" } } }
+            ]),
+            // 3. COGS (Global for now, as per original logic)
+            Product.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        total: { $sum: { $multiply: ["$costPrice", "$soldQuantity"] } }
+                    }
                 }
-            }
-        ]),
-        // 4. Counts
-        Sale.countDocuments(matchFilter),
-        Product.estimatedDocumentCount(),
-        // 5. Recent Sales
-        Sale.find(matchFilter)
-            .sort({ timestamp: -1 })
-            .limit(7)
-            .select('totalAmount timestamp')
-            .lean(),
-        // 6. Low Stock
-        Product.find({ stockQuantity: { $lte: 10 } }) // Only fetch actually low stock items
-            .sort({ stockQuantity: 1 })
-            .limit(5)
-            .select('name stockQuantity')
-            .lean()
-    ]);
+            ]),
+            // 4. Counts
+            Sale.countDocuments(matchFilter),
+            Product.estimatedDocumentCount(),
+            // 5. Recent Sales
+            Sale.find(matchFilter)
+                .sort({ timestamp: -1 })
+                .limit(7)
+                .select('totalAmount timestamp')
+                .lean(),
+            // 6. Low Stock
+            Product.find({ stockQuantity: { $lte: 10 } }) // Only fetch actually low stock items
+                .sort({ stockQuantity: 1 })
+                .limit(5)
+                .select('name stockQuantity')
+                .lean()
+        ]);
 
-    const totalRevenue = revenueResult[0]?.total || 0;
-    const operationalExpenses = expensesResult[0]?.total || 0;
-    const cogs = cogsResult[0]?.total || 0;
-    const totalExpenses = cogs + operationalExpenses;
-    const currentBalance = settings.openingBalance + totalRevenue - operationalExpenses;
+        console.log('[DASHBOARD] Queries completed');
 
-    const formattedRecentSales = recentSales.reverse().map(s => ({
-        name: new Date(s.timestamp).toLocaleDateString(undefined, { weekday: 'short' }),
-        amount: s.totalAmount,
-    }));
+        const totalRevenue = revenueResult[0]?.total || 0;
+        const operationalExpenses = expensesResult[0]?.total || 0;
+        const cogs = cogsResult[0]?.total || 0;
+        const totalExpenses = cogs + operationalExpenses;
+        const currentBalance = settings.openingBalance + totalRevenue - operationalExpenses;
 
-    const formattedLowStock = lowStockProducts.map(p => ({
-        name: p.name,
-        stock: p.stockQuantity,
-    }));
+        const formattedRecentSales = recentSales.reverse().map(s => ({
+            name: new Date(s.timestamp).toLocaleDateString(undefined, { weekday: 'short' }),
+            amount: s.totalAmount,
+        }));
 
-    res.json({
-        financials: {
-            openingBalance: settings.openingBalance,
-            totalRevenue,
-            totalExpenses,
-            currentBalance,
-        },
-        recentSales: formattedRecentSales,
-        lowStockProducts: formattedLowStock,
-        salesCount,
-        productsCount,
-    });
+        const formattedLowStock = lowStockProducts.map(p => ({
+            name: p.name,
+            stock: p.stockQuantity,
+        }));
+
+        res.json({
+            financials: {
+                openingBalance: settings.openingBalance,
+                totalRevenue,
+                totalExpenses,
+                currentBalance,
+            },
+            recentSales: formattedRecentSales,
+            lowStockProducts: formattedLowStock,
+            salesCount,
+            productsCount,
+        });
+    } catch (error) {
+        console.error('[DASHBOARD ERROR]', error);
+        res.status(500);
+        throw new Error('Dashboard data fetch failed: ' + error.message);
+    }
 });
 
 // @desc    Get comprehensive event-based reports with chart data

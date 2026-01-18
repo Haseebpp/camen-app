@@ -95,6 +95,15 @@ const adminService = {
         return response.data;
     },
 
+    async updateProduct(id: string, data: Partial<AdminProduct>): Promise<AdminProduct> {
+        const response = await axios.put(`/admin/products/${id}`, data);
+        return response.data;
+    },
+
+    async deleteProduct(id: string): Promise<void> {
+        await axios.delete(`/admin/products/${id}`);
+    },
+
     // Sales
     async getSales(): Promise<AdminSale[]> {
         const response = await axios.get('/admin/sales');

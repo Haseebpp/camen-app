@@ -54,10 +54,18 @@ export const registerUser = asyncHandler(async (req, res) => {
 // @access  Public
 export const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
+    console.log(`[LOGIN ATTEMPT] Email: ${email}`);
 
     const user = await User.findOne({ email });
 
-    if (user && (await user.matchPassword(password))) {
+    if (!user) {
+        console.log(`[LOGIN FAILED] User not found: ${email}`);
+        res.status(401);
+        throw new Error('Invalid email or password');
+    }
+
+    if (await user.matchPassword(password)) {
+        console.log(`[LOGIN SUCCESS] User: ${user.name}`);
         generateToken(res, user._id);
 
         res.json({
@@ -67,6 +75,7 @@ export const loginUser = asyncHandler(async (req, res) => {
             isAdmin: user.isAdmin,
         });
     } else {
+        console.log(`[LOGIN FAILED] Password mismatch for: ${email}`);
         res.status(401);
         throw new Error('Invalid email or password');
     }
@@ -76,11 +85,18 @@ export const loginUser = asyncHandler(async (req, res) => {
 // @route   POST /api/auth/logout
 // @access  Public
 export const logoutUser = (req, res) => {
-    res.cookie('jwt', '', {
-        httpOnly: true,
-        expires: new Date(0),
-    });
-    res.status(200).json({ message: 'Logged out successfully' });
+    try {
+        console.log('[LOGOUT ATTEMPT]');
+        res.cookie('jwt', '', {
+            httpOnly: true,
+            expires: new Date(0),
+        });
+        console.log('[LOGOUT SUCCESS]');
+        res.status(200).json({ message: 'Logged out successfully' });
+    } catch (err) {
+        console.error('[LOGOUT ERROR]', err);
+        res.status(500).json({ message: 'Logout failed', error: err.message });
+    }
 };
 
 // @desc    Get user profile

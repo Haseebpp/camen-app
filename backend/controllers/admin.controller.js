@@ -296,3 +296,41 @@ export const deleteExpense = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc    Update product (admin only)
+// @route   PUT /api/admin/products/:id
+// @access  Private/Admin
+export const updateProduct = asyncHandler(async (req, res) => {
+    const product = await Product.findById(req.params.id);
+
+    if (product) {
+        product.name = req.body.name || product.name;
+        product.itemCode = req.body.itemCode || product.itemCode;
+        product.category = req.body.category || product.category;
+        product.sellingPrice = req.body.sellingPrice !== undefined ? req.body.sellingPrice : product.sellingPrice;
+        product.stockQuantity = req.body.stockQuantity !== undefined ? req.body.stockQuantity : product.stockQuantity;
+
+        const updatedProduct = await product.save();
+        const populatedProduct = await Product.findById(updatedProduct._id).populate('user', 'name email');
+
+        res.json(populatedProduct);
+    } else {
+        res.status(404);
+        throw new Error('Product not found');
+    }
+});
+
+// @desc    Delete product (admin only)
+// @route   DELETE /api/admin/products/:id
+// @access  Private/Admin
+export const deleteProduct = asyncHandler(async (req, res) => {
+    const product = await Product.findById(req.params.id);
+
+    if (product) {
+        await Product.deleteOne({ _id: req.params.id });
+        res.json({ message: 'Product removed' });
+    } else {
+        res.status(404);
+        throw new Error('Product not found');
+    }
+});
+

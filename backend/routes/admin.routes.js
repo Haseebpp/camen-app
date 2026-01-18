@@ -5,6 +5,8 @@ import {
     updateUser,
     deleteUser,
     getAllProducts,
+    updateProduct,
+    deleteProduct,
     getAllSales,
     updateSale,
     deleteSale,
@@ -38,7 +40,13 @@ router.route('/users/:id')
     .delete(deleteUser);
 
 // Products
-router.get('/products', getAllProducts);
+// Products
+router.route('/products')
+    .get(getAllProducts);
+
+router.route('/products/:id')
+    .put(updateProduct)
+    .delete(deleteProduct);
 
 // Sales
 router.route('/sales')
