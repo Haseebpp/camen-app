@@ -270,17 +270,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     {/* Navigation */}
                     <nav className="space-y-2 flex-1 overflow-y-auto pr-1 custom-scrollbar">
                         <SidebarLink to="/dashboard" icon={<LayoutDashboard size={20} />} label="Dashboard" />
-                        <SidebarLink to="/events" icon={<CalendarDays size={20} />} label="Events" />
                         <SidebarLink to="/sales" icon={<ShoppingCart size={20} />} label="Point of Sale" />
                         <SidebarLink to="/inventory" icon={<Package size={20} />} label="Inventory" />
                         <SidebarLink to="/expenses" icon={<Receipt size={20} />} label="Expenses" />
-                        <SidebarLink to="/reports" icon={<BarChart3 size={20} />} label="Reports" />
                         <SidebarLink to="/settings" icon={<SettingsIcon size={20} />} label="Settings" />
 
-                        {/* Admin Link - only visible to admins */}
+                        {/* Admin Section - only visible to admins */}
                         {user?.isAdmin && (
                             <>
                                 <div className="my-4 border-t border-slate-100" />
+                                <SidebarLink
+                                    to="/events"
+                                    icon={<CalendarDays size={20} />}
+                                    label="Events"
+                                    variant="admin"
+                                />
+                                <SidebarLink
+                                    to="/reports"
+                                    icon={<BarChart3 size={20} />}
+                                    label="Reports"
+                                    variant="admin"
+                                />
                                 <SidebarLink
                                     to="/admin"
                                     icon={<Shield size={20} />}

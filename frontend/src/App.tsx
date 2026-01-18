@@ -11,6 +11,7 @@ import { fetchEvents } from './state/slices/eventSlice';
 // Site components
 import Layout from './components/site/Layout';
 import ProtectedRoute from './components/site/ProtectedRoute';
+import AdminRoute from './components/site/AdminRoute';
 
 // Pages
 import Home from './pages/Home';
@@ -63,10 +64,12 @@ const App: React.FC = () => {
                 <Route path="/inventory" element={<Inventory />} />
                 <Route path="/sales" element={<Sales />} />
                 <Route path="/expenses" element={<Expenses />} />
-                <Route path="/events" element={<Events />} />
-                <Route path="/reports" element={<Reports />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/admin" element={<Admin />} />
+
+                {/* Admin-only Routes */}
+                <Route path="/events" element={<AdminRoute><Events /></AdminRoute>} />
+                <Route path="/reports" element={<AdminRoute><Reports /></AdminRoute>} />
+                <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
             </Route>
 
             {/* Fallback */}

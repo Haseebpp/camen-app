@@ -6,21 +6,21 @@ import {
     updateEventStatus,
     deleteEvent,
 } from '../controllers/event.controller.js';
-import { protect } from '../middleware/auth.middleware.js';
+import { protect, admin } from '../middleware/auth.middleware.js';
 import { validateEvent, validateEventStatus } from '../validation/event.validation.js';
 
 const router = express.Router();
 
 router.route('/')
-    .get(protect, getEvents)
-    .post(protect, validateEvent, createEvent);
+    .get(protect, admin, getEvents)
+    .post(protect, admin, validateEvent, createEvent);
 
-router.get('/:id/stats', protect, getEventStats);
+router.get('/:id/stats', protect, admin, getEventStats);
 
 router.route('/:id/status')
-    .put(protect, validateEventStatus, updateEventStatus);
+    .put(protect, admin, validateEventStatus, updateEventStatus);
 
 router.route('/:id')
-    .delete(protect, deleteEvent);
+    .delete(protect, admin, deleteEvent);
 
 export default router;

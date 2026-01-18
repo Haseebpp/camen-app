@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Plus, Search, Package, Edit2 } from 'lucide-react';
+import { Search, Package } from 'lucide-react';
 import type { RootState, AppDispatch } from '@/state/store';
-import type { Product } from '@/lib/types';
-import { fetchProducts, createProduct, updateProduct } from '@/state/slices/productSlice';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Modal } from '@/components/ui/modal';
+import { fetchProducts } from '@/state/slices/productSlice';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { LOGO_URL } from '@/lib/constants';
 
@@ -16,62 +12,11 @@ const Inventory: React.FC = () => {
     const { events, selectedEventId } = useSelector((state: RootState) => state.events);
     const selectedEvent = events.find(e => e._id === selectedEventId);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [formData, setFormData] = useState<Partial<Product>>({
-        itemCode: '',
-        name: '',
-        category: '',
-        sellingPrice: 0,
-        stockQuantity: 0,
-        description: '',
-    });
 
     useEffect(() => {
         dispatch(fetchProducts());
     }, [dispatch]);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        // ... existing submit logic ...
-        e.preventDefault();
-        if (editingId) {
-            await dispatch(updateProduct({ id: editingId, updates: formData }));
-        } else {
-            await dispatch(
-                createProduct({
-                    itemCode: formData.itemCode || '',
-                    name: formData.name || '',
-                    category: formData.category || 'General',
-                    costPrice: 0, // Hidden from UI, using default value
-                    sellingPrice: Number(formData.sellingPrice),
-                    stockQuantity: Number(formData.stockQuantity),
-                    initialStock: Number(formData.stockQuantity),
-                    description: formData.description || '',
-                })
-            );
-        }
-        closeModal();
-    };
-
-    const openEdit = (product: Product) => {
-        setFormData(product);
-        setEditingId(product._id);
-        setIsModalOpen(true);
-    };
-
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setEditingId(null);
-        setFormData({
-            itemCode: '',
-            name: '',
-            category: '',
-            sellingPrice: 0,
-            stockQuantity: 0,
-            description: '',
-        });
-    };
 
     const filteredProducts = products.filter(
         (p) =>
@@ -90,10 +35,6 @@ const Inventory: React.FC = () => {
                 <div className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                     <img src={LOGO_URL} alt="CAMEN" className="h-16 w-auto object-contain" />
                 </div>
-
-                <Button onClick={() => setIsModalOpen(true)} className="z-10">
-                    <Plus size={18} /> Add Product
-                </Button>
             </div>
 
             <div className="relative">
@@ -123,20 +64,19 @@ const Inventory: React.FC = () => {
                             <TableHead className="text-right">Price (SAR)</TableHead>
                             <TableHead className="text-center">Stock</TableHead>
                             <TableHead className="text-center">Sold</TableHead>
-                            <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {isLoading ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-8">
+                                <TableCell colSpan={6} className="text-center py-8">
                                     Loading...
                                 </TableCell>
                             </TableRow>
                         ) : filteredProducts.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-8 text-slate-500">
-                                    No products found. Add some inventory!
+                                <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                                    No products found.
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -171,77 +111,12 @@ const Inventory: React.FC = () => {
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-center text-slate-600">{product.soldQuantity}</TableCell>
-                                    <TableCell>
-                                        <button
-                                            onClick={() => openEdit(product)}
-                                            className="text-slate-400 hover:text-indigo-600 transition-colors"
-                                        >
-                                            <Edit2 size={18} />
-                                        </button>
-                                    </TableCell>
                                 </TableRow>
                             ))
                         )}
                     </TableBody>
                 </Table>
             </div>
-
-            <Modal isOpen={isModalOpen} onClose={closeModal} title={editingId ? 'Edit Product' : 'Add New Product'}>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <Input
-                            label="Item Code"
-                            placeholder="e.g. SW-01"
-                            value={formData.itemCode}
-                            onChange={(e) => setFormData({ ...formData, itemCode: e.target.value })}
-                            required
-                        />
-                        <Input
-                            label="Product Name"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            required
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <Input
-                            label="Category"
-                            value={formData.category}
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            required
-                        />
-                        <Input
-                            label="Description"
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <Input
-                            label="Price (SAR)"
-                            type="number"
-                            min="0"
-                            value={formData.sellingPrice}
-                            onChange={(e) => setFormData({ ...formData, sellingPrice: Number(e.target.value) })}
-                            required
-                        />
-                        <Input
-                            label="Stock"
-                            type="number"
-                            min="0"
-                            value={formData.stockQuantity}
-                            onChange={(e) => setFormData({ ...formData, stockQuantity: Number(e.target.value) })}
-                            required
-                        />
-                    </div>
-                    <div className="flex justify-end gap-3 mt-6">
-                        <Button type="button" variant="ghost" onClick={closeModal}>
-                            Cancel
-                        </Button>
-                        <Button type="submit">Save Product</Button>
-                    </div>
-                </form>
-            </Modal>
         </div>
     );
 };
