@@ -5,7 +5,7 @@ export const SettingsSkeleton: React.FC = () => (
     <div className="space-y-6 max-w-2xl animate-pulse">
         <Skeleton className="h-10 w-48" />
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-6">
+        <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100 space-y-6">
             <div>
                 <Skeleton className="h-6 w-56 mb-4" />
                 <div className="space-y-4">

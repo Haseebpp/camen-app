@@ -22,7 +22,7 @@ export const ReportsSkeleton: React.FC = () => (
 
         <Skeleton className="h-14 w-full rounded-xl" />
 
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 space-y-8">
+        <div className="bg-white rounded-xl shadow-xl border border-slate-100 p-6 space-y-8">
             <div>
                 <Skeleton className="h-6 w-64 mb-4" />
                 <Skeleton className="h-80 w-full rounded-xl" />

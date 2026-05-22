@@ -138,7 +138,7 @@ const Dashboard: React.FC = () => {
                 <button
                     onClick={() => fetchData(true)}
                     disabled={isRefreshing}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-70"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-xl disabled:opacity-70"
                 >
                     {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
                 </button>
@@ -199,7 +199,7 @@ const Dashboard: React.FC = () => {
 
             {/* Quick Stats Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <div className="bg-white p-4 rounded-xl shadow-xl border border-slate-100">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-amber-50 rounded-lg text-amber-600">
                             <Calendar size={20} />
@@ -210,7 +210,7 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <div className="bg-white p-4 rounded-xl shadow-xl border border-slate-100">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-green-50 rounded-lg text-green-600">
                             <Activity size={20} />
@@ -221,7 +221,7 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <div className="bg-white p-4 rounded-xl shadow-xl border border-slate-100">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-indigo-50 rounded-lg text-indigo-600">
                             <ShoppingCart size={20} />
@@ -232,7 +232,7 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <div className="bg-white p-4 rounded-xl shadow-xl border border-slate-100">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-purple-50 rounded-lg text-purple-600">
                             <Package size={20} />
@@ -248,7 +248,7 @@ const Dashboard: React.FC = () => {
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Recent Sales Trend */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100">
                     <h3 className="font-semibold text-lg mb-6 text-slate-800">Recent Sales Trend</h3>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
@@ -278,7 +278,7 @@ const Dashboard: React.FC = () => {
                 </div>
 
                 {/* Low Stock Alerts */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="font-semibold text-lg text-slate-800">Low Stock Alerts</h3>
                         <div className="flex items-center gap-2">
@@ -319,7 +319,7 @@ const Dashboard: React.FC = () => {
             {/* Bottom Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Ongoing Events */}
-                <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-xl border border-slate-100">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold text-lg text-slate-800">Ongoing Events</h3>
                         {ongoingEvents.length > 0 && (
@@ -355,7 +355,7 @@ const Dashboard: React.FC = () => {
                 </div>
 
                 {/* Expense Breakdown */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100">
                     <h3 className="font-semibold text-lg text-slate-800 mb-4">Expense Categories</h3>
                     {(reportData?.expensesByCategory || []).length > 0 ? (
                         <div className="h-48">

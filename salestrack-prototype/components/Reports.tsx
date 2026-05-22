@@ -15,7 +15,7 @@ const Reports: React.FC = () => {
     // Title
     doc.setFontSize(20);
     doc.text('SalesTrack AI - Detailed Report', 14, 22);
-    
+
     // Metadata
     doc.setFontSize(11);
     doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
@@ -34,7 +34,7 @@ const Reports: React.FC = () => {
     // Inventory Table
     doc.setFontSize(14);
     doc.text('Current Inventory Status', 14, 90);
-    
+
     const inventoryData = state.products.map(p => [
       p.itemCode,
       p.name,
@@ -80,23 +80,23 @@ const Reports: React.FC = () => {
 
     // Sheet 1: Products
     const wsProducts = XLSX.utils.json_to_sheet(state.products.map(p => ({
-        Code: p.itemCode,
-        Name: p.name,
-        Category: p.category,
-        Cost: p.costPrice,
-        Price: p.sellingPrice,
-        Stock: p.stockQuantity,
-        Sold: p.soldQuantity
+      Code: p.itemCode,
+      Name: p.name,
+      Category: p.category,
+      Cost: p.costPrice,
+      Price: p.sellingPrice,
+      Stock: p.stockQuantity,
+      Sold: p.soldQuantity
     })));
     XLSX.utils.book_append_sheet(wb, wsProducts, "Inventory");
 
     // Sheet 2: Sales
     const wsSales = XLSX.utils.json_to_sheet(state.sales.map(s => ({
-        Date: new Date(s.timestamp).toLocaleString(),
-        Type: s.type,
-        ComboName: s.comboName || 'N/A',
-        TotalAmount: s.totalAmount,
-        SoldBy: s.soldBy
+      Date: new Date(s.timestamp).toLocaleString(),
+      Type: s.type,
+      ComboName: s.comboName || 'N/A',
+      TotalAmount: s.totalAmount,
+      SoldBy: s.soldBy
     })));
     XLSX.utils.book_append_sheet(wb, wsSales, "Sales History");
 
@@ -105,53 +105,53 @@ const Reports: React.FC = () => {
 
   return (
     <div className="space-y-6">
-       <h2 className="text-3xl font-bold text-slate-800">Reports & Export</h2>
-       <p className="text-slate-500">Download detailed analysis of your inventory and sales performance.</p>
+      <h2 className="text-3xl font-bold text-slate-800">Reports & Export</h2>
+      <p className="text-slate-500">Download detailed analysis of your inventory and sales performance.</p>
 
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-         <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
-           <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4">
-             <FileText size={32} />
-           </div>
-           <h3 className="text-xl font-bold text-slate-800 mb-2">PDF Report</h3>
-           <p className="text-slate-500 mb-6 text-sm">Professional document format suitable for printing and sharing. Includes summary tables and financial snapshots.</p>
-           <button 
-             onClick={exportPDF}
-             className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
-           >
-             <FileDown size={18} /> Download PDF
-           </button>
-         </div>
-
-         <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
-           <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-4">
-             <Table size={32} />
-           </div>
-           <h3 className="text-xl font-bold text-slate-800 mb-2">Excel Spreadsheet</h3>
-           <p className="text-slate-500 mb-6 text-sm">Raw data format (.xlsx) for external analysis. Contains separate sheets for Inventory and Transaction logs.</p>
-           <button 
-             onClick={exportExcel}
-             className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-           >
-             <FileDown size={18} /> Download Excel
-           </button>
-         </div>
-       </div>
-
-       {/* Data Sync Status Indicator */}
-       <div className="mt-8 bg-blue-50 border border-blue-100 p-4 rounded-lg flex items-center justify-between">
-          <div>
-            <h4 className="font-semibold text-blue-800">Cloud Sync Status</h4>
-            <p className="text-sm text-blue-600">All data is synced to registered email: <strong>{state.settings.userEmail}</strong></p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white p-8 rounded-xl shadow-xl border border-slate-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
+          <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4">
+            <FileText size={32} />
           </div>
-          <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-            </span>
-            Live Synced
+          <h3 className="text-xl font-bold text-slate-800 mb-2">PDF Report</h3>
+          <p className="text-slate-500 mb-6 text-sm">Professional document format suitable for printing and sharing. Includes summary tables and financial snapshots.</p>
+          <button
+            onClick={exportPDF}
+            className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+          >
+            <FileDown size={18} /> Download PDF
+          </button>
+        </div>
+
+        <div className="bg-white p-8 rounded-xl shadow-xl border border-slate-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
+          <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-4">
+            <Table size={32} />
           </div>
-       </div>
+          <h3 className="text-xl font-bold text-slate-800 mb-2">Excel Spreadsheet</h3>
+          <p className="text-slate-500 mb-6 text-sm">Raw data format (.xlsx) for external analysis. Contains separate sheets for Inventory and Transaction logs.</p>
+          <button
+            onClick={exportExcel}
+            className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <FileDown size={18} /> Download Excel
+          </button>
+        </div>
+      </div>
+
+      {/* Data Sync Status Indicator */}
+      <div className="mt-8 bg-blue-50 border border-blue-100 p-4 rounded-lg flex items-center justify-between">
+        <div>
+          <h4 className="font-semibold text-blue-800">Cloud Sync Status</h4>
+          <p className="text-sm text-blue-600">All data is synced to registered email: <strong>{state.settings.userEmail}</strong></p>
+        </div>
+        <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+          </span>
+          Live Synced
+        </div>
+      </div>
     </div>
   );
 };

@@ -319,7 +319,7 @@ const Admin: React.FC = () => {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as TabType)}
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id
-                            ? 'bg-indigo-600 text-white shadow-sm'
+                            ? 'bg-indigo-600 text-white shadow-xl'
                             : 'text-slate-600 hover:bg-slate-100'
                             }`}
                     >
@@ -339,7 +339,7 @@ const Admin: React.FC = () => {
                 activeTab === 'overview' ? (
                     <AdminSkeleton />
                 ) : (
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                    <div className="bg-white rounded-xl shadow-xl border border-slate-100 p-6">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -357,7 +357,7 @@ const Admin: React.FC = () => {
                     </div>
                 )
             ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                <div className="bg-white rounded-xl shadow-xl border border-slate-100 p-6">
                     {selectedIds.length > 0 && (
                         <div className="bg-red-50 border border-red-200 p-3 rounded-lg flex items-center justify-between mb-4">
                             <span className="text-red-700 font-medium">{selectedIds.length} items selected</span>

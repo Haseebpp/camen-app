@@ -49,7 +49,7 @@ const Home: React.FC = () => {
 
                 {/* Features Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-24">
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100 hover:shadow-md transition-shadow">
                         <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 mb-4">
                             <Package size={24} />
                         </div>
@@ -59,7 +59,7 @@ const Home: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100 hover:shadow-md transition-shadow">
                         <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-green-600 mb-4">
                             <ShoppingCart size={24} />
                         </div>
@@ -69,7 +69,7 @@ const Home: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100 hover:shadow-md transition-shadow">
                         <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 mb-4">
                             <BarChart3 size={24} />
                         </div>
@@ -79,7 +79,7 @@ const Home: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100 hover:shadow-md transition-shadow">
                         <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 mb-4">
                             <Users size={24} />
                         </div>

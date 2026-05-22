@@ -105,7 +105,7 @@ const Events: React.FC = () => {
                         events.map((event) => (
                             <div
                                 key={event._id}
-                                className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow"
+                                className="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden hover:shadow-md transition-shadow"
                             >
                                 <div className="p-5">
                                     <div className="flex justify-between items-start mb-4">

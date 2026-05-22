@@ -34,8 +34,8 @@ const Expenses: React.FC = () => {
     setFormData({ description: '', category: '', amount: 0, date: Date.now(), eventId: '' });
   };
 
-  const filteredExpenses = state.expenses.filter(e => 
-    e.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredExpenses = state.expenses.filter(e =>
+    e.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     e.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -45,7 +45,7 @@ const Expenses: React.FC = () => {
         <h2 className="text-3xl font-bold text-slate-800">Expenses</h2>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-sm hover:shadow"
+          className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-xl hover:shadow"
         >
           <Plus size={18} /> Add Expense
         </button>
@@ -62,7 +62,7 @@ const Expenses: React.FC = () => {
         />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-slate-50 border-b border-slate-200">
@@ -113,7 +113,7 @@ const Expenses: React.FC = () => {
                       -SAR {expense.amount.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button 
+                      <button
                         onClick={() => deleteExpense(expense.id)}
                         className="text-slate-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-full"
                         title="Delete Expense"
@@ -155,47 +155,47 @@ const Expenses: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                <input 
-                  required 
-                  type="text" 
+                <input
+                  required
+                  type="text"
                   placeholder="e.g., Office Rent, Electricity Bill"
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none" 
-                  value={formData.description} 
-                  onChange={e => setFormData({...formData, description: e.target.value})} 
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                  value={formData.description}
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-                  <input 
-                    required 
-                    type="text" 
+                  <input
+                    required
+                    type="text"
                     placeholder="e.g., Utilities"
-                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none" 
-                    value={formData.category} 
-                    onChange={e => setFormData({...formData, category: e.target.value})} 
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    value={formData.category}
+                    onChange={e => setFormData({ ...formData, category: e.target.value })}
                   />
                 </div>
                 <div>
-                   <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
-                   <input 
-                    type="date" 
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
+                  <input
+                    type="date"
                     required
-                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none" 
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
                     value={formData.date ? new Date(formData.date).toISOString().split('T')[0] : ''}
-                    onChange={e => setFormData({...formData, date: new Date(e.target.value).getTime()})} 
-                   />
+                    onChange={e => setFormData({ ...formData, date: new Date(e.target.value).getTime() })}
+                  />
                 </div>
               </div>
 
               {openEvents.length > 0 && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Link to Event (Optional)</label>
-                  <select 
+                  <select
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
                     value={formData.eventId}
-                    onChange={e => setFormData({...formData, eventId: e.target.value})}
+                    onChange={e => setFormData({ ...formData, eventId: e.target.value })}
                   >
                     <option value="">-- No Specific Event --</option>
                     {openEvents.map(e => (
@@ -209,28 +209,28 @@ const Expenses: React.FC = () => {
                 <label className="block text-sm font-medium text-slate-700 mb-1">Amount (SAR)</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">SAR</span>
-                  <input 
-                    required 
-                    type="number" 
-                    min="0" 
+                  <input
+                    required
+                    type="number"
+                    min="0"
                     step="0.01"
-                    className="w-full pl-10 p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none" 
-                    value={formData.amount || ''} 
-                    onChange={e => setFormData({...formData, amount: Number(e.target.value)})} 
+                    className="w-full pl-10 p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    value={formData.amount || ''}
+                    onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })}
                   />
                 </div>
               </div>
 
               <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-100">
-                <button 
-                  type="button" 
-                  onClick={closeModal} 
+                <button
+                  type="button"
+                  onClick={closeModal}
                   className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                 >
                   Save Expense

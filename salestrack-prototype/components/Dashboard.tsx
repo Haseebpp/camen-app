@@ -55,19 +55,19 @@ const Dashboard: React.FC = () => {
 
       {/* AI Analysis Result */}
       {aiAnalysis && (
-        <div className="bg-purple-50 border border-purple-200 p-6 rounded-xl shadow-sm">
-            <h3 className="flex items-center gap-2 font-bold text-purple-800 mb-2">
-                <Sparkles size={20} /> AI Insights
-            </h3>
-            <div className="prose prose-purple max-w-none text-sm text-slate-700 whitespace-pre-line">
-                {aiAnalysis}
-            </div>
+        <div className="bg-purple-50 border border-purple-200 p-6 rounded-xl shadow-xl">
+          <h3 className="flex items-center gap-2 font-bold text-purple-800 mb-2">
+            <Sparkles size={20} /> AI Insights
+          </h3>
+          <div className="prose prose-purple max-w-none text-sm text-slate-700 whitespace-pre-line">
+            {aiAnalysis}
+          </div>
         </div>
       )}
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-slate-500 font-medium">Opening Balance</h3>
             <div className="p-2 bg-blue-50 rounded-full text-blue-600">
@@ -77,7 +77,7 @@ const Dashboard: React.FC = () => {
           <p className="text-2xl font-bold text-slate-800">SAR {state.settings.openingBalance.toLocaleString()}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-slate-500 font-medium">Total Expenses</h3>
             <div className="p-2 bg-red-50 rounded-full text-red-600">
@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
           <p className="text-xs text-slate-400 mt-1">Cost of Goods Sold</p>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-slate-500 font-medium">Total Revenue</h3>
             <div className="p-2 bg-green-50 rounded-full text-green-600">
@@ -98,7 +98,7 @@ const Dashboard: React.FC = () => {
           <p className="text-2xl font-bold text-green-600">+SAR {totalRevenue.toLocaleString()}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-slate-500 font-medium">Current Balance</h3>
             <div className="p-2 bg-indigo-50 rounded-full text-indigo-600">
@@ -111,7 +111,7 @@ const Dashboard: React.FC = () => {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100">
           <h3 className="font-semibold text-lg mb-6">Recent Sales Trend</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -119,7 +119,7 @@ const Dashboard: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
                 <YAxis stroke="#64748b" fontSize={12} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}
                   formatter={(value: number) => [`SAR ${value}`, 'Amount']}
                 />
@@ -129,10 +129,10 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-100">
           <div className="flex items-center justify-between mb-6">
-             <h3 className="font-semibold text-lg">Lowest Stock Alerts</h3>
-             <AlertCircle size={18} className="text-amber-500" />
+            <h3 className="font-semibold text-lg">Lowest Stock Alerts</h3>
+            <AlertCircle size={18} className="text-amber-500" />
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -140,7 +140,7 @@ const Dashboard: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
                 <XAxis type="number" stroke="#64748b" fontSize={12} />
                 <YAxis dataKey="name" type="category" width={100} stroke="#64748b" fontSize={12} />
-                <Tooltip cursor={{fill: '#f1f5f9'}} />
+                <Tooltip cursor={{ fill: '#f1f5f9' }} />
                 <Bar dataKey="stock" fill="#f59e0b" radius={[0, 4, 4, 0]} barSize={20} />
               </BarChart>
             </ResponsiveContainer>

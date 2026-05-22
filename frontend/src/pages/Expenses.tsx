@@ -101,7 +101,7 @@ const Expenses: React.FC = () => {
                 </div>
             )}
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
                 <Table>
                     <TableHeader>
                         <TableRow>

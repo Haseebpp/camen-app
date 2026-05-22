@@ -25,7 +25,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({ value, onChange }) =
     };
 
     return (
-        <div className="bg-white p-4 rounded-xl border border-slate-200 mb-6 shadow-sm">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 mb-6 shadow-xl">
             <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <User size={20} className="text-indigo-600" />
                 Customer Details
