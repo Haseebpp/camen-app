@@ -12,7 +12,6 @@ import {
     DollarSign,
     ArrowUpRight,
     ArrowDownRight,
-    RefreshCw,
 } from 'lucide-react';
 import {
     BarChart,
@@ -38,6 +37,7 @@ import type { Financials, EventsReportData } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { ReportsSkeleton } from '@/components/skeletons/ReportsSkeleton';
 
 // Chart colors
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
@@ -557,16 +557,7 @@ const Reports: React.FC = () => {
     ];
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-96">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="animate-spin text-indigo-600">
-                        <RefreshCw size={40} />
-                    </div>
-                    <p className="text-slate-500 font-medium">Loading reports...</p>
-                </div>
-            </div>
-        );
+        return <ReportsSkeleton />;
     }
 
     if (error) {
@@ -581,7 +572,6 @@ const Reports: React.FC = () => {
                     onClick={fetchData}
                     className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
                 >
-                    <RefreshCw size={18} />
                     Try Again
                 </button>
             </div>

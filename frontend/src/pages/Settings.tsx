@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '@/state/store';
 import { fetchSettings, updateSettings } from '@/state/slices/settingsSlice';
 import { Input } from '@/components/ui/input';
+import { SettingsSkeleton } from '@/components/skeletons/SettingsSkeleton';
 
 const Settings: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -17,11 +18,7 @@ const Settings: React.FC = () => {
     };
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-pulse text-indigo-600">Loading settings...</div>
-            </div>
-        );
+        return <SettingsSkeleton />;
     }
 
     if (error) {

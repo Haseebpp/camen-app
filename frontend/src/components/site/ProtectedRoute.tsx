@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/state/store';
+import { AppSkeleton } from '@/components/skeletons/AppSkeleton';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -12,11 +13,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     const location = useLocation();
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <div className="animate-pulse text-indigo-600">Loading...</div>
-            </div>
-        );
+        return <AppSkeleton />;
     }
 
     if (!isAuthenticated) {

@@ -19,6 +19,8 @@ import eventService from '@/state/services/eventService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
+import { EventsSkeleton } from '@/components/skeletons/EventsSkeleton';
+import { EventDetailsSkeleton } from '@/components/skeletons/EventDetailsSkeleton';
 
 const Events: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -89,51 +91,53 @@ const Events: React.FC = () => {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLoading ? (
-                    <div className="col-span-full py-12 text-center">Loading...</div>
-                ) : events.length === 0 ? (
-                    <div className="col-span-full py-12 text-center bg-white rounded-xl border border-slate-100 border-dashed">
-                        <Calendar size={48} className="mx-auto text-slate-300 mb-4" />
-                        <h3 className="text-lg font-medium text-slate-700">No Events Created</h3>
-                        <p className="text-slate-500">Create an event to start tracking specific sales data.</p>
-                    </div>
-                ) : (
-                    events.map((event) => (
-                        <div
-                            key={event._id}
-                            className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow"
-                        >
-                            <div className="p-5">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <h3 className="text-lg font-bold text-slate-800">{event.name}</h3>
-                                        <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
-                                            <Calendar size={14} /> {new Date(event.date).toLocaleDateString()}
-                                        </div>
-                                        <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
-                                            <MapPin size={14} /> {event.location}
-                                        </div>
-                                    </div>
-                                    <span
-                                        className={`px-2 py-1 rounded text-xs font-bold ${event.status === 'OPEN' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
-                                            }`}
-                                    >
-                                        {event.status}
-                                    </span>
-                                </div>
-
-                                <button
-                                    onClick={() => openEventDetails(event)}
-                                    className="w-full mt-2 py-2 bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-100 font-medium text-sm flex items-center justify-center gap-2"
-                                >
-                                    View Details <ChevronRight size={16} />
-                                </button>
-                            </div>
+            {isLoading ? (
+                <EventsSkeleton />
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {events.length === 0 ? (
+                        <div className="col-span-full py-12 text-center bg-white rounded-xl border border-slate-100 border-dashed">
+                            <Calendar size={48} className="mx-auto text-slate-300 mb-4" />
+                            <h3 className="text-lg font-medium text-slate-700">No Events Created</h3>
+                            <p className="text-slate-500">Create an event to start tracking specific sales data.</p>
                         </div>
-                    ))
-                )}
-            </div>
+                    ) : (
+                        events.map((event) => (
+                            <div
+                                key={event._id}
+                                className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow"
+                            >
+                                <div className="p-5">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-slate-800">{event.name}</h3>
+                                            <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
+                                                <Calendar size={14} /> {new Date(event.date).toLocaleDateString()}
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
+                                                <MapPin size={14} /> {event.location}
+                                            </div>
+                                        </div>
+                                        <span
+                                            className={`px-2 py-1 rounded text-xs font-bold ${event.status === 'OPEN' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
+                                                }`}
+                                        >
+                                            {event.status}
+                                        </span>
+                                    </div>
+
+                                    <button
+                                        onClick={() => openEventDetails(event)}
+                                        className="w-full mt-2 py-2 bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-100 font-medium text-sm flex items-center justify-center gap-2"
+                                    >
+                                        View Details <ChevronRight size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
 
             {/* New Event Modal */}
             <Modal isOpen={isModalOpen} onClose={closeModal} title="Create New Event">
@@ -190,7 +194,9 @@ const Events: React.FC = () => {
                             </button>
                         </div>
 
-                        {eventStats && (
+                        {!eventStats ? (
+                            <EventDetailsSkeleton />
+                        ) : (
                             <div className="space-y-6">
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-green-50 p-4 rounded-xl border border-green-100">

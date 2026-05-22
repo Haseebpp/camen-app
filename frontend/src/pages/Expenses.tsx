@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 
 const Expenses: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -114,11 +115,7 @@ const Expenses: React.FC = () => {
                     </TableHeader>
                     <TableBody>
                         {isLoading ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8">
-                                    Loading...
-                                </TableCell>
-                            </TableRow>
+                            <TableSkeleton columns={6} rows={5} />
                         ) : filteredExpenses.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center py-12">

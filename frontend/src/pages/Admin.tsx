@@ -28,6 +28,8 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { AdminSkeleton } from '@/components/skeletons/AdminSkeleton';
+import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 
 type TabType = 'overview' | 'users' | 'products' | 'sales' | 'expenses' | 'events';
 
@@ -334,9 +336,26 @@ const Admin: React.FC = () => {
             )}
 
             {isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                    <div className="animate-pulse text-indigo-600">Loading...</div>
-                </div>
+                activeTab === 'overview' ? (
+                    <AdminSkeleton />
+                ) : (
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    {[...Array(6)].map((_, i) => (
+                                        <TableHead key={i}>
+                                            <div className="h-4 w-24 bg-slate-100 animate-pulse rounded"></div>
+                                        </TableHead>
+                                    ))}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableSkeleton columns={6} rows={5} />
+                            </TableBody>
+                        </Table>
+                    </div>
+                )
             ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
                     {selectedIds.length > 0 && (

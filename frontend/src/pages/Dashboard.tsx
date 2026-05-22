@@ -22,7 +22,6 @@ import {
     Package,
     ShoppingCart,
     AlertTriangle,
-    RefreshCw,
     Activity,
     Target,
 } from 'lucide-react';
@@ -30,37 +29,13 @@ import type { RootState } from '@/state/store';
 import reportService from '@/state/services/reportService';
 import type { DashboardData, EventsReportData } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 
 // Chart colors
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
-const DashboardSkeleton = () => (
-    <div className="space-y-6 animate-pulse">
-        <div className="flex justify-between items-center">
-            <div className="space-y-2">
-                <Skeleton className="h-8 w-64" />
-                <Skeleton className="h-4 w-48" />
-            </div>
-            <Skeleton className="h-10 w-32" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-32 rounded-xl" />
-            ))}
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-24 rounded-xl" />
-            ))}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Skeleton className="h-80 rounded-xl" />
-            <Skeleton className="h-80 rounded-xl" />
-        </div>
-    </div>
-);
+
 
 const Dashboard: React.FC = () => {
     const { settings } = useSelector((state: RootState) => state.settings);
@@ -124,7 +99,7 @@ const Dashboard: React.FC = () => {
             : '0';
     }, [financials]);
 
-    if (isLoading && !dashboardData) {
+    if ((isLoading && !dashboardData) || isRefreshing) {
         return <DashboardSkeleton />;
     }
 
@@ -140,7 +115,6 @@ const Dashboard: React.FC = () => {
                     onClick={() => fetchData(false)}
                     className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
                 >
-                    <RefreshCw size={18} />
                     Try Again
                 </button>
             </div>
@@ -166,7 +140,6 @@ const Dashboard: React.FC = () => {
                     disabled={isRefreshing}
                     className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-70"
                 >
-                    <RefreshCw size={18} className={cn(isRefreshing && "animate-spin")} />
                     {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
                 </button>
             </div>

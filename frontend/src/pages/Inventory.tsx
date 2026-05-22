@@ -4,6 +4,7 @@ import { Search, Package } from 'lucide-react';
 import type { RootState, AppDispatch } from '@/state/store';
 import { fetchProducts } from '@/state/slices/productSlice';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { LOGO_URL } from '@/lib/constants';
 
 const Inventory: React.FC = () => {
@@ -68,11 +69,7 @@ const Inventory: React.FC = () => {
                     </TableHeader>
                     <TableBody>
                         {isLoading ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8">
-                                    Loading...
-                                </TableCell>
-                            </TableRow>
+                            <TableSkeleton columns={6} rows={5} />
                         ) : filteredProducts.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center py-8 text-slate-500">
