@@ -182,6 +182,7 @@ const Admin: React.FC = () => {
                 category: editingProduct.category,
                 sellingPrice: editingProduct.sellingPrice,
                 stockQuantity: editingProduct.stockQuantity,
+                image: editingProduct.image,
             });
             setProducts(products.map((p) => (p._id === updated._id ? updated : p)));
             setEditingProduct(null);
@@ -495,7 +496,18 @@ const Admin: React.FC = () => {
                                     {products.map((p) => (
                                         <TableRow key={p._id}>
                                             <TableCell className="font-mono text-sm">{p.itemCode}</TableCell>
-                                            <TableCell className="font-medium">{p.name}</TableCell>
+                                            <TableCell className="font-medium">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 rounded border border-slate-100 flex items-center justify-center bg-slate-50 overflow-hidden shrink-0">
+                                                        {p.image ? (
+                                                            <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <Package className="text-slate-400" size={14} />
+                                                        )}
+                                                    </div>
+                                                    <span>{p.name}</span>
+                                                </div>
+                                            </TableCell>
                                             <TableCell>{p.category}</TableCell>
                                             <TableCell>SAR {p.sellingPrice}</TableCell>
                                             <TableCell>
@@ -855,6 +867,44 @@ const Admin: React.FC = () => {
                             value={editingProduct.stockQuantity.toString()}
                             onChange={(e) => setEditingProduct({ ...editingProduct, stockQuantity: parseInt(e.target.value) || 0 })}
                         />
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Product Image</label>
+                            <div className="flex gap-3 items-center mb-2">
+                                <div className="w-12 h-12 rounded-lg border border-slate-200 flex items-center justify-center bg-slate-50 overflow-hidden shrink-0">
+                                    {editingProduct.image ? (
+                                        <img src={editingProduct.image} alt="Preview" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <Package className="text-slate-400" size={24} />
+                                    )}
+                                </div>
+                                <select
+                                    value={['/images/products/box.png', '/images/products/shadow_walk.png', '/images/products/wild_flame.png', '/images/products/violet_silk.png', '/images/products/oud_risala.png', '/images/products/green_oud.png', '/images/products/eau_blue.png', '/images/products/midnight_noir.png', '/images/products/rose_smoke.png'].includes(editingProduct.image || '') ? editingProduct.image : 'custom'}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val !== 'custom') {
+                                            setEditingProduct({ ...editingProduct, image: val });
+                                        }
+                                    }}
+                                    className="flex-1 p-2 border border-slate-200 rounded-lg text-sm bg-white"
+                                >
+                                    <option value="/images/products/box.png">Default Box</option>
+                                    <option value="/images/products/shadow_walk.png">Shadow Walk</option>
+                                    <option value="/images/products/wild_flame.png">Wild Flame</option>
+                                    <option value="/images/products/violet_silk.png">Violet Silk</option>
+                                    <option value="/images/products/oud_risala.png">Oud Risala</option>
+                                    <option value="/images/products/green_oud.png">Green Oud</option>
+                                    <option value="/images/products/eau_blue.png">Eau Blue</option>
+                                    <option value="/images/products/midnight_noir.png">Midnight Noir</option>
+                                    <option value="/images/products/rose_smoke.png">Rose Smoke</option>
+                                    <option value="custom">Custom path / URL...</option>
+                                </select>
+                            </div>
+                            <Input
+                                placeholder="Enter custom image path or URL"
+                                value={editingProduct.image || ''}
+                                onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
+                            />
+                        </div>
                         <div className="flex justify-end gap-3 mt-6">
                             <Button variant="ghost" onClick={() => setEditingProduct(null)}>
                                 Cancel

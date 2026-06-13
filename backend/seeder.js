@@ -32,14 +32,14 @@ const staffData = [
 
 // Product data
 const productsData = [
-    { itemCode: 'SW-01', name: 'Shadow Walk', description: 'Premium Fragrance', costPrice: 60, sellingPrice: 180, stockQuantity: 47, initialStock: 50, soldQuantity: 3, category: 'Perfume' },
-    { itemCode: 'WF-01', name: 'Wild Flame', description: 'Intense spicy scent', costPrice: 60, sellingPrice: 195, stockQuantity: 38, initialStock: 40, soldQuantity: 2, category: 'Perfume' },
-    { itemCode: 'VS-01', name: 'Violet Silk', description: 'Soft floral notes', costPrice: 60, sellingPrice: 160, stockQuantity: 55, initialStock: 60, soldQuantity: 5, category: 'Perfume' },
-    { itemCode: 'OR-01', name: 'Oud Risala', description: 'Traditional authentic Oud', costPrice: 40, sellingPrice: 250, stockQuantity: 28, initialStock: 30, soldQuantity: 2, category: 'Oud' },
-    { itemCode: 'GO-01', name: 'Green Oud', description: 'Fresh woody blend', costPrice: 40, sellingPrice: 230, stockQuantity: 31, initialStock: 35, soldQuantity: 4, category: 'Oud' },
-    { itemCode: 'EB-01', name: 'Eau Blue', description: 'Oceanic fresh breeze', costPrice: 40, sellingPrice: 140, stockQuantity: 52, initialStock: 55, soldQuantity: 3, category: 'Perfume' },
-    { itemCode: 'MN-01', name: 'Midnight Noir', description: 'Deep mysterious scent', costPrice: 70, sellingPrice: 220, stockQuantity: 25, initialStock: 30, soldQuantity: 5, category: 'Perfume' },
-    { itemCode: 'RS-01', name: 'Rose Smoke', description: 'Smoky rose blend', costPrice: 55, sellingPrice: 175, stockQuantity: 40, initialStock: 45, soldQuantity: 5, category: 'Perfume' },
+    { itemCode: 'SW-01', name: 'Shadow Walk', description: 'Premium Fragrance', costPrice: 60, sellingPrice: 180, stockQuantity: 47, initialStock: 50, soldQuantity: 3, category: 'Perfume', image: '/images/products/shadow_walk.png' },
+    { itemCode: 'WF-01', name: 'Wild Flame', description: 'Intense spicy scent', costPrice: 60, sellingPrice: 195, stockQuantity: 38, initialStock: 40, soldQuantity: 2, category: 'Perfume', image: '/images/products/wild_flame.png' },
+    { itemCode: 'VS-01', name: 'Violet Silk', description: 'Soft floral notes', costPrice: 60, sellingPrice: 160, stockQuantity: 55, initialStock: 60, soldQuantity: 5, category: 'Perfume', image: '/images/products/violet_silk.png' },
+    { itemCode: 'OR-01', name: 'Oud Risala', description: 'Traditional authentic Oud', costPrice: 40, sellingPrice: 250, stockQuantity: 28, initialStock: 30, soldQuantity: 2, category: 'Oud', image: '/images/products/oud_risala.png' },
+    { itemCode: 'GO-01', name: 'Green Oud', description: 'Fresh woody blend', costPrice: 40, sellingPrice: 230, stockQuantity: 31, initialStock: 35, soldQuantity: 4, category: 'Oud', image: '/images/products/green_oud.png' },
+    { itemCode: 'EB-01', name: 'Eau Blue', description: 'Oceanic fresh breeze', costPrice: 40, sellingPrice: 140, stockQuantity: 52, initialStock: 55, soldQuantity: 3, category: 'Perfume', image: '/images/products/eau_blue.png' },
+    { itemCode: 'MN-01', name: 'Midnight Noir', description: 'Deep mysterious scent', costPrice: 70, sellingPrice: 220, stockQuantity: 25, initialStock: 30, soldQuantity: 5, category: 'Perfume', image: '/images/products/midnight_noir.png' },
+    { itemCode: 'RS-01', name: 'Rose Smoke', description: 'Smoky rose blend', costPrice: 55, sellingPrice: 175, stockQuantity: 40, initialStock: 45, soldQuantity: 5, category: 'Perfume', image: '/images/products/rose_smoke.png' },
 ];
 
 // Events with locations

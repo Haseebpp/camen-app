@@ -250,8 +250,12 @@ const Sales: React.FC = () => {
                                 }`}
                         >
                             <div className="flex justify-between items-start mb-2">
-                                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-500">
-                                    <LayoutGrid size={18} />
+                                <div className="w-12 h-12 rounded-lg border border-slate-100 flex items-center justify-center bg-slate-50 overflow-hidden">
+                                    {product.image ? (
+                                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <LayoutGrid className="text-slate-400" size={18} />
+                                    )}
                                 </div>
                                 <span className="font-bold text-slate-700">SAR {product.sellingPrice}</span>
                             </div>

@@ -18,6 +18,7 @@ export interface AdminProduct {
     stockQuantity: number;
     soldQuantity: number;
     user: { _id: string; name: string; email: string };
+    image?: string;
 }
 
 export interface AdminSale {

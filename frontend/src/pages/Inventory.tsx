@@ -82,8 +82,12 @@ const Inventory: React.FC = () => {
                                     <TableCell className="text-slate-600 font-mono text-sm">{product.itemCode}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                                <Package size={20} />
+                                            <div className="w-10 h-10 rounded-lg border border-slate-100 flex items-center justify-center bg-slate-50 overflow-hidden">
+                                                {product.image ? (
+                                                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Package className="text-indigo-600" size={20} />
+                                                )}
                                             </div>
                                             <div>
                                                 <p className="font-medium text-slate-900">{product.name}</p>

@@ -29,7 +29,7 @@ export const getProduct = asyncHandler(async (req, res) => {
 // @route   POST /api/products
 // @access  Private
 export const createProduct = asyncHandler(async (req, res) => {
-    const { itemCode, name, description, category, costPrice, sellingPrice, stockQuantity } = req.body;
+    const { itemCode, name, description, category, costPrice, sellingPrice, stockQuantity, image } = req.body;
 
     const product = await Product.create({
         user: req.user._id,
@@ -42,6 +42,7 @@ export const createProduct = asyncHandler(async (req, res) => {
         stockQuantity,
         initialStock: stockQuantity,
         soldQuantity: 0,
+        image: image || '/images/products/box.png',
     });
 
     res.status(201).json(product);
@@ -63,6 +64,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
         product.stockQuantity = req.body.stockQuantity ?? product.stockQuantity;
         product.initialStock = req.body.initialStock ?? product.initialStock;
         product.soldQuantity = req.body.soldQuantity ?? product.soldQuantity;
+        product.image = req.body.image ?? product.image;
 
         const updatedProduct = await product.save();
         res.json(updatedProduct);

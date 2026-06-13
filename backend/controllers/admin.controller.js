@@ -308,6 +308,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
         product.category = req.body.category || product.category;
         product.sellingPrice = req.body.sellingPrice !== undefined ? req.body.sellingPrice : product.sellingPrice;
         product.stockQuantity = req.body.stockQuantity !== undefined ? req.body.stockQuantity : product.stockQuantity;
+        product.image = req.body.image !== undefined ? req.body.image : product.image;
 
         const updatedProduct = await product.save();
         const populatedProduct = await Product.findById(updatedProduct._id).populate('user', 'name email');

@@ -18,6 +18,7 @@ export interface Product {
     initialStock: number;
     soldQuantity: number;
     category: string;
+    image?: string;
 }
 
 export type SaleType = 'INDIVIDUAL' | 'COMBO';
