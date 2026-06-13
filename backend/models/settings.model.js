@@ -17,6 +17,11 @@ const settingsSchema = new mongoose.Schema(
             type: String,
             default: 'SAR',
         },
+        clearedSalesAmount: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
     },
     {
         timestamps: true,

@@ -22,6 +22,11 @@ const eventService = {
         return response.data;
     },
 
+    async updateEventClearedSales(id: string, clearedSalesAmount: number): Promise<Event> {
+        const response = await axios.put(`/events/${id}/cleared-sales`, { clearedSalesAmount });
+        return response.data;
+    },
+
     async deleteEvent(id: string): Promise<void> {
         await axios.delete(`/events/${id}`);
     },

@@ -26,6 +26,11 @@ const eventSchema = new mongoose.Schema(
             enum: ['OPEN', 'CLOSED'],
             default: 'OPEN',
         },
+        clearedSalesAmount: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
     },
     {
         timestamps: true,

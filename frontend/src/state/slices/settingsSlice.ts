@@ -24,7 +24,7 @@ export const fetchSettings = createAsyncThunk('settings/fetch', async (_, { reje
 
 export const updateSettings = createAsyncThunk(
     'settings/update',
-    async (data: { openingBalance?: number; currency?: string }, { rejectWithValue }) => {
+    async (data: { openingBalance?: number; currency?: string; clearedSalesAmount?: number }, { rejectWithValue }) => {
         try {
             return await settingsService.updateSettings(data);
         } catch (error) {

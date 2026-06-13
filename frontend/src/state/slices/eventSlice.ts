@@ -46,6 +46,17 @@ export const updateEventStatus = createAsyncThunk(
     }
 );
 
+export const updateEventClearedSales = createAsyncThunk(
+    'events/updateClearedSales',
+    async ({ id, clearedSalesAmount }: { id: string; clearedSalesAmount: number }, { rejectWithValue }) => {
+        try {
+            return await eventService.updateEventClearedSales(id, clearedSalesAmount);
+        } catch (error) {
+            return rejectWithValue((error as Error).message);
+        }
+    }
+);
+
 export const deleteEvent = createAsyncThunk(
     'events/delete',
     async (id: string, { rejectWithValue }) => {
@@ -95,6 +106,13 @@ const eventSlice = createSlice({
             })
             // Update Event Status
             .addCase(updateEventStatus.fulfilled, (state, action: PayloadAction<Event>) => {
+                const index = state.events.findIndex(e => e._id === action.payload._id);
+                if (index !== -1) {
+                    state.events[index] = action.payload;
+                }
+            })
+            // Update Event Cleared Sales
+            .addCase(updateEventClearedSales.fulfilled, (state, action: PayloadAction<Event>) => {
                 const index = state.events.findIndex(e => e._id === action.payload._id);
                 if (index !== -1) {
                     state.events[index] = action.payload;

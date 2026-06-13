@@ -105,3 +105,28 @@ export const deleteEvent = asyncHandler(async (req, res) => {
         throw new Error('Event not found');
     }
 });
+
+// @desc    Update event cleared sales amount
+// @route   PUT /api/events/:id/cleared-sales
+// @access  Private
+export const updateEventClearedSales = asyncHandler(async (req, res) => {
+    const { clearedSalesAmount } = req.body;
+    const event = await Event.findById(req.params.id);
+
+    if (!event) {
+        res.status(404);
+        throw new Error('Event not found');
+    }
+
+    if (clearedSalesAmount !== undefined) {
+        const amt = Number(clearedSalesAmount);
+        if (isNaN(amt) || amt < 0) {
+            res.status(400);
+            throw new Error('Cleared sales amount must be a non-negative number');
+        }
+        event.clearedSalesAmount = amt;
+    }
+
+    const updatedEvent = await event.save();
+    res.json(updatedEvent);
+});

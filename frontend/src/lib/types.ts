@@ -58,6 +58,7 @@ export interface Event {
     date: string;
     location: string;
     status: EventStatus;
+    clearedSalesAmount?: number;
 }
 
 export interface EventStats {
@@ -73,6 +74,7 @@ export interface AppSettings {
     openingBalance: number;
     currency: string;
     userEmail: string;
+    clearedSalesAmount?: number;
 }
 
 export interface Financials {
